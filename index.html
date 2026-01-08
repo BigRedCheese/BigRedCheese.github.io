@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Movie Connections</title>
+  <title>Movie Connections NO MARVEL!</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -333,33 +333,33 @@
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
     const GROUPS = [
-      { groupId: "jaws", movieTitle: "Jaws", difficulty: 1, posterImg: "/images/posters/Jaws_movie_poster.jpg" },
-      { groupId: "goodfellas", movieTitle: "Goodfellas", difficulty: 2, posterImg: "/images/posters/goodfellas.jpg" },
-      { groupId: "inception", movieTitle: "Inception", difficulty: 3, posterImg: "/images/posters/inception.jpg" },
-      { groupId: "no_country", movieTitle: "No Country for Old Men", difficulty: 4, posterImg: "/images/posters/No-Country-Poster.jpg" },
+      { groupId: "ghostbusters", movieTitle: "Ghostbusters", difficulty: 1, posterImg: "/images/posters/ghostbusters.webp" },
+      { groupId: "knives_out", movieTitle: "Knives Out", difficulty: 2, posterImg: "/images/posters/knives out.jpg" },
+      { groupId: "oppenheimer", movieTitle: "Oppenheimer", difficulty: 3, posterImg: "/images/posters/oppenheimer.webp" },
+      { groupId: "hurt_locker", movieTitle: "The Hurt Locker", difficulty: 4, posterImg: "/images/posters/hurt locker.jpeg" },
     ];
 
     // EXACTLY 16 tiles. Exactly 4 tiles per groupId.
     const TILES = [
-      { id:"a1", name:"Roy Scheider", img:"/images/actors/scheider.webp", groupId:"jaws" },
-      { id:"a2", name:"Richard Dreyfuss", img:"/images/actors/dreyfuss.jpg", groupId:"jaws" },
-      { id:"a3", name:"Robert Shaw", img:"/images/actors/shaw.jpg", groupId:"jaws" },
-      { id:"a4", name:"Lorraine Gary", img:"/images/actors/gary.jpg", groupId:"jaws" },
+      { id:"a1", name:"Robert Downey Jr", img:"/images/actors/downey.png", groupId:"oppenheimer" },
+      { id:"a2", name:"Florence Pugh", img:"/images/actors/pugh.jpeg", groupId:"oppenheimer" },
+      { id:"a3", name:"Matt Damon", img:"/images/actors/damon.webp", groupId:"oppenheimer" },
+      { id:"a4", name:"Emily Blunt", img:"/images/actors/blunt.jpg", groupId:"oppenheimer" },
 
-      { id:"b1", name:"Robert De Niro", img:"/images/actors/deniro.webp", groupId:"goodfellas" },
-      { id:"b2", name:"Ray Liotta", img:"/images/actors/liotta.jpg", groupId:"goodfellas" },
-      { id:"b3", name:"Joe Pesci", img:"/images/actors/Joepesci.webp", groupId:"goodfellas" },
-      { id:"b4", name:"Lorraine Bracco", img:"/images/actors/lorraine-bracco-290x290.jpg", groupId:"goodfellas" },
+      { id:"b1", name:"Chris Hemsworth", img:"/images/actors/hemsworth.webp", groupId:"ghostbusters" },
+      { id:"b2", name:"Kristen Wiig", img:"/images/actors/wiig.jpg", groupId:"ghostbusters" },
+      { id:"b3", name:"Kate McKinnon", img:"/images/actors/mckinnon.webp", groupId:"ghostbusters" },
+      { id:"b4", name:"Melissa McCarthy", img:"/images/actors/mccarthy.webp", groupId:"ghostbusters" },
 
-      { id:"c1", name:"Leonardo DiCaprio", img:"/images/actors/dicaprio.jpeg", groupId:"inception" },
-      { id:"c2", name:"Joseph Gordon-Levitt", img:"/images/actors/leavitt.jpeg", groupId:"inception" },
-      { id:"c3", name:"Elliot Page", img:"/images/actors/page.jpeg", groupId:"inception" },
-      { id:"c4", name:"Tom Hardy", img:"/images/actors/hardy.jpeg", groupId:"inception" },
+      { id:"c1", name:"Jeremy Renner", img:"/images/actors/renner.webp", groupId:"hurt_locker" },
+      { id:"c2", name:"Anthony Mackie", img:"/images/actors/mackie.webp", groupId:"hurt_locker" },
+      { id:"c3", name:"Ralph Fiennes", img:"/images/actors/fiennes.webp", groupId:"hurt_locker" },
+      { id:"c4", name:"Evangeline Lilly", img:"/images/actors/lilly.avif", groupId:"hurt_locker" },
 
-      { id:"d1", name:"Javier Bardem", img:"/images/actors/bardem.jpeg", groupId:"no_country" },
-      { id:"d2", name:"Josh Brolin", img:"/images/actors/brolin.jpeg", groupId:"no_country" },
-      { id:"d3", name:"Tommy Lee Jones", img:"/images/actors/Tommy-Lee-Jones.jpg", groupId:"no_country" },
-      { id:"d4", name:"Kelly Macdonald", img:"/images/actors/macdonald.jpg", groupId:"no_country" },
+      { id:"d1", name:"Chris Evans", img:"/images/actors/evans.jpg", groupId:"knives-out" },
+      { id:"d2", name:"Don Johnson", img:"/images/actors/johnson.webp", groupId:"knives-out" },
+      { id:"d3", name:"Jamie Lee Curtis", img:"/images/actors/curtis.webp", groupId:"knives-out" },
+      { id:"d4", name:"Daniel Craig", img:"/images/actors/craig.webp", groupId:"knives-out" },
     ];
 
     /******************************************************************
