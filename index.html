@@ -97,7 +97,7 @@
     .msg{
       min-height: 22px;
       font-size: 14px;
-      color: var(--muted);
+      color:var(--muted);
     }
     .msg strong{ color: var(--text); }
 
@@ -132,9 +132,7 @@
       gap:12px;
     }
 
-    .solvedLeft{
-      min-width: 0;
-    }
+    .solvedLeft{ min-width:0; }
 
     .solvedTitle{
       margin:0;
@@ -230,13 +228,10 @@
 
     .tile.selected{
       border-color: transparent;
-
-      /* bright, high-contrast selection ring */
       box-shadow:
-        0 0 0 4px #ffffff,                 /* crisp white inner ring */
-        0 0 0 7px rgba(17,24,39,1),         /* dark outer ring */
-        0 0 14px rgba(17,24,39,.45);        /* soft glow */
-
+        0 0 0 4px #ffffff,
+        0 0 0 7px rgba(17,24,39,1),
+        0 0 14px rgba(17,24,39,.45);
       z-index: 2;
     }
 
@@ -248,9 +243,7 @@
       60%{ transform: translateX(-6px); }
       80%{ transform: translateX(6px); }
     }
-    .shake{
-      animation: shake .35s ease;
-    }
+    .shake{ animation: shake .35s ease; }
 
     /* Poster popover */
     .posterPop{
@@ -315,12 +308,9 @@
         <div class="attempts" id="attempts"></div>
       </div>
 
-      <!-- NYT-style solved category bars -->
       <div class="solvedBars" id="solvedBars"></div>
-
       <div class="grid" id="grid"></div>
 
-      <!-- poster popover injected here -->
       <div class="posterPop" id="posterPop" aria-hidden="true">
         <img id="posterPopImg" alt="Movie poster" />
         <div class="posterCaption" id="posterPopCap"></div>
@@ -334,7 +324,7 @@
      ******************************************************************/
     const GROUPS = [
       { groupId: "ghostbusters", movieTitle: "Ghostbusters", difficulty: 1, posterImg: "/images/posters/ghostbusters.webp" },
-      { groupId: "knives_out", movieTitle: "Knives Out", difficulty: 2, posterImg: "/images/posters/knives_out.jpg" },
+      { groupId: "knives_out", movieTitle: "Knives Out", difficulty: 2, posterImg: "/images/posters/knives out.jpg" },
       { groupId: "oppenheimer", movieTitle: "Oppenheimer", difficulty: 3, posterImg: "/images/posters/oppenheimer.webp" },
       { groupId: "hurt_locker", movieTitle: "The Hurt Locker", difficulty: 4, posterImg: "/images/posters/hurt locker.jpeg" },
     ];
@@ -389,9 +379,6 @@
     let solvedRows = [];       // [{ groupId, memberNames:[], difficulty, movieTitle }]
     let attemptsLeft = 4;
     let lockInput = false;
-
-    // NEW: when game ends, show names + reveal missing answer bars
-    let revealMode = false;
 
     // ---- Sound (no external files needed) ----
     let audioCtx = null;
@@ -492,7 +479,6 @@
       solvedRows = [];
       attemptsLeft = 4;
       lockInput = false;
-      revealMode = false;
 
       hidePosterPop(true);
       renderAll();
@@ -550,7 +536,6 @@
         tile.dataset.groupId = t.groupId;
 
         if (selected.has(t.id)) tile.classList.add("selected");
-        if (revealMode) tile.classList.add("showName"); // NEW: force names visible when revealing answers
 
         const img = document.createElement("img");
         img.src = t.img;
@@ -628,106 +613,186 @@
       }
 
       if (allSame && groupById.has(groupId)) {
-        const g = groupById.get(groupId);
-        lockInput = true;
-
-        // sounds
-        playDing();
-        setTimeout(() => playWhoosh(), 70);
-
-        // Capture selection rect NOW (before rerender removes tiles)
-        const selectionRect = getSelectionRect();
-
-        // Mark solved + build NYT-style bar row data
-        solvedGroups.add(groupId);
-        solvedRows.push({
-          groupId,
-          difficulty: g.difficulty,
-          movieTitle: g.movieTitle,
-          memberNames: chosen.map(t => t.name)
-        });
-
-        // Remove those 4 tiles from grid (they become a bar)
-        const selectedIds = new Set(chosen.map(t => t.id));
-        tiles = tiles.filter(t => !selectedIds.has(t.id));
-
-        // Clear selection
-        selected.clear();
-
-        // Animate reflow of remaining tiles
-        animateReorder(() => {
-          renderAll();
-        });
-
-        // Poster pop near where the player solved it
-        if (selectionRect) showPosterAtRect(g, selectionRect);
-
-        setMsg(`Correct: <strong>${g.movieTitle}</strong>`);
-
-        setTimeout(() => {
-          lockInput = false;
-          renderGrid();
-          if (solvedGroups.size === 4) {
-            setMsg("🎉 You solved them all!");
-            btnSubmit.disabled = true;
-          }
-        }, 520);
-
+        solveGroup(groupId, chosen, true);
       } else {
+        // WRONG GUESS:
+        // 1) decrement attempts
+        // 2) shake selection
+        // 3) auto-deselect all (after shake so player sees feedback)
         attemptsLeft -= 1;
         updateAttempts();
+
+        lockInput = true;
         shakeSelectedTiles();
 
         if (attemptsLeft <= 0) {
-          // NEW: reveal answers when out of mistakes
-          revealAnswersAndEnd();
+          // reveal with correct-style animation sequence
+          setTimeout(() => {
+            selected.clear();
+            renderGrid();
+            revealAnswersAnimated();
+          }, 360);
           return;
         }
+
         setMsg("Not quite. Try another set of 4.");
+
+        // auto-deselect all after shake
+        setTimeout(() => {
+          selected.clear();
+          lockInput = false;
+          hidePosterPop(false);
+          renderGrid();
+        }, 360);
       }
     }
 
-    // NEW: reveal all remaining groups + show names on remaining tiles
-    function revealAnswersAndEnd(){
+    // Solve a group (used for both player-correct and reveal-animated)
+    function solveGroup(groupId, chosenTiles, playSfx){
+      const g = groupById.get(groupId);
+      if (!g) return;
+      if (solvedGroups.has(groupId)) return;
+
       lockInput = true;
-      revealMode = true;
+
+      if (playSfx){
+        playDing();
+        setTimeout(() => playWhoosh(), 70);
+      }
+
+      // selection rect NOW (before removing tiles)
+      const selectionRect = getRectForTileIds(chosenTiles.map(t => t.id));
+
+      solvedGroups.add(groupId);
+      solvedRows.push({
+        groupId,
+        difficulty: g.difficulty,
+        movieTitle: g.movieTitle,
+        memberNames: chosenTiles.map(t => t.name)
+      });
+
+      // remove those tiles from play
+      const selectedIds = new Set(chosenTiles.map(t => t.id));
+      tiles = tiles.filter(t => !selectedIds.has(t.id));
+
+      // clear selection
       selected.clear();
+
+      // animate reflow
+      animateReorder(() => renderAll());
+
+      // poster pop near where solved
+      if (selectionRect) showPosterAtRect(g, selectionRect);
+
+      setMsg(`Correct: <strong>${g.movieTitle}</strong>`);
+
+      setTimeout(() => {
+        lockInput = false;
+        renderGrid();
+
+        if (solvedGroups.size === 4) {
+          setMsg("🎉 You solved them all!");
+          btnSubmit.disabled = true;
+        }
+      }, 520);
+    }
+
+    // NEW: reveal answers with the SAME behavior as correct guesses
+    function revealAnswersAnimated(){
+      lockInput = true;
+      btnSubmit.disabled = true;
+      btnShuffle.disabled = true;
+      btnDeselect.disabled = true;
+
       hidePosterPop(false);
 
-      // Add any missing groups to the solved bars, in difficulty order.
-      const missing = GROUPS
+      // Remaining groups, difficulty order
+      const remainingGroups = GROUPS
         .filter(g => !solvedGroups.has(g.groupId))
-        .map(g => {
-          const memberNames = TILES
-            .filter(t => t.groupId === g.groupId)
-            .map(t => t.name);
-          return {
+        .slice()
+        .sort((a,b) => a.difficulty - b.difficulty);
+
+      setMsg("Game over — revealing answers…");
+
+      let i = 0;
+
+      function step(){
+        if (i >= remainingGroups.length) {
+          lockInput = true;
+          renderGrid();
+          setMsg("Game over — answers revealed. Hit <strong>Reset</strong> to try again.");
+          return;
+        }
+
+        const g = remainingGroups[i++];
+        const chosenTiles = TILES.filter(t => t.groupId === g.groupId);
+
+        // If those tiles are still on the board (they should be), animate like a solve:
+        // (Use the exact same remove + FLIP flow)
+        // For reveal, we keep it silent or you can enable SFX by setting playSfx=true.
+        const stillPresentIds = new Set(tiles.map(t => t.id));
+        const presentTiles = chosenTiles.filter(t => stillPresentIds.has(t.id));
+
+        if (presentTiles.length === 4) {
+          // play little sfx during reveal? (optional; feels nice)
+          playDing();
+          setTimeout(() => playWhoosh(), 70);
+
+          // rect based on current tile elements (before removing)
+          const rect = getRectForTileIds(presentTiles.map(t => t.id));
+
+          solvedGroups.add(g.groupId);
+          solvedRows.push({
             groupId: g.groupId,
             difficulty: g.difficulty,
             movieTitle: g.movieTitle,
-            memberNames
-          };
-        })
-        .sort((a,b) => a.difficulty - b.difficulty);
+            memberNames: presentTiles.map(t => t.name)
+          });
 
-      // Avoid duplicates (in case something weird happens)
-      const existingIds = new Set(solvedRows.map(r => r.groupId));
-      missing.forEach(row => {
-        if (!existingIds.has(row.groupId)) solvedRows.push(row);
-      });
+          // remove and animate
+          const removeIds = new Set(presentTiles.map(t => t.id));
+          tiles = tiles.filter(t => !removeIds.has(t.id));
+          selected.clear();
 
-      // Re-render with revealed info
-      renderAll();
+          animateReorder(() => renderAll());
 
-      btnSubmit.disabled = true;
-      setMsg("Game over — answers revealed. Hit <strong>Reset</strong> to try again.");
+          if (rect) showPosterAtRect(g, rect);
+        } else {
+          // Fallback: just add the bar (shouldn't happen, but safe)
+          if (!solvedGroups.has(g.groupId)) solvedGroups.add(g.groupId);
+          const names = TILES.filter(t => t.groupId === g.groupId).map(t => t.name);
+          solvedRows.push({
+            groupId: g.groupId,
+            difficulty: g.difficulty,
+            movieTitle: g.movieTitle,
+            memberNames: names
+          });
+          renderAll();
+        }
+
+        // queue next reveal after animations have time to play
+        setTimeout(step, 620);
+      }
+
+      step();
     }
 
-    // Compute bounding rect of selected tiles on screen (before we remove them)
+    function getRectForTileIds(ids){
+      const idSet = new Set(ids);
+      const els = [...gridEl.querySelectorAll(".tile")].filter(el => idSet.has(el.dataset.id));
+      if (els.length === 0) return null;
+
+      const rects = els.map(el => el.getBoundingClientRect());
+      const minLeft = Math.min(...rects.map(r => r.left));
+      const maxRight = Math.max(...rects.map(r => r.right));
+      const minTop = Math.min(...rects.map(r => r.top));
+      const maxBottom = Math.max(...rects.map(r => r.bottom));
+      return { left:minLeft, right:maxRight, top:minTop, bottom:maxBottom };
+    }
+
     function getSelectionRect(){
       const selectedEls = [...gridEl.querySelectorAll(".tile")]
         .filter(el => selected.has(el.dataset.id));
-
       if (selectedEls.length === 0) return null;
 
       const rects = selectedEls.map(el => el.getBoundingClientRect());
@@ -735,7 +800,6 @@
       const maxRight = Math.max(...rects.map(r => r.right));
       const minTop = Math.min(...rects.map(r => r.top));
       const maxBottom = Math.max(...rects.map(r => r.bottom));
-
       return { left:minLeft, right:maxRight, top:minTop, bottom:maxBottom };
     }
 
