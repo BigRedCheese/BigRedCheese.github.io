@@ -231,13 +231,13 @@
     .tile.selected{
       border-color: transparent;
 
-  /* bright, high-contrast selection ring */
-  box-shadow:
-    0 0 0 4px #ffffff,                 /* crisp white inner ring */
-    0 0 0 7px rgba(17,24,39,1),         /* dark outer ring */
-    0 0 14px rgba(17,24,39,.45);        /* soft glow */
+      /* bright, high-contrast selection ring */
+      box-shadow:
+        0 0 0 4px #ffffff,                 /* crisp white inner ring */
+        0 0 0 7px rgba(17,24,39,1),         /* dark outer ring */
+        0 0 14px rgba(17,24,39,.45);        /* soft glow */
 
-  z-index: 2;
+      z-index: 2;
     }
 
     /* Shake (wrong guess) */
@@ -390,6 +390,9 @@
     let attemptsLeft = 4;
     let lockInput = false;
 
+    // NEW: when game ends, show names + reveal missing answer bars
+    let revealMode = false;
+
     // ---- Sound (no external files needed) ----
     let audioCtx = null;
 
@@ -489,6 +492,7 @@
       solvedRows = [];
       attemptsLeft = 4;
       lockInput = false;
+      revealMode = false;
 
       hidePosterPop(true);
       renderAll();
@@ -546,6 +550,7 @@
         tile.dataset.groupId = t.groupId;
 
         if (selected.has(t.id)) tile.classList.add("selected");
+        if (revealMode) tile.classList.add("showName"); // NEW: force names visible when revealing answers
 
         const img = document.createElement("img");
         img.src = t.img;
@@ -674,13 +679,48 @@
         shakeSelectedTiles();
 
         if (attemptsLeft <= 0) {
-          setMsg("Game over. Reset to try again.");
-          lockInput = true;
-          btnSubmit.disabled = true;
+          // NEW: reveal answers when out of mistakes
+          revealAnswersAndEnd();
           return;
         }
         setMsg("Not quite. Try another set of 4.");
       }
+    }
+
+    // NEW: reveal all remaining groups + show names on remaining tiles
+    function revealAnswersAndEnd(){
+      lockInput = true;
+      revealMode = true;
+      selected.clear();
+      hidePosterPop(false);
+
+      // Add any missing groups to the solved bars, in difficulty order.
+      const missing = GROUPS
+        .filter(g => !solvedGroups.has(g.groupId))
+        .map(g => {
+          const memberNames = TILES
+            .filter(t => t.groupId === g.groupId)
+            .map(t => t.name);
+          return {
+            groupId: g.groupId,
+            difficulty: g.difficulty,
+            movieTitle: g.movieTitle,
+            memberNames
+          };
+        })
+        .sort((a,b) => a.difficulty - b.difficulty);
+
+      // Avoid duplicates (in case something weird happens)
+      const existingIds = new Set(solvedRows.map(r => r.groupId));
+      missing.forEach(row => {
+        if (!existingIds.has(row.groupId)) solvedRows.push(row);
+      });
+
+      // Re-render with revealed info
+      renderAll();
+
+      btnSubmit.disabled = true;
+      setMsg("Game over — answers revealed. Hit <strong>Reset</strong> to try again.");
     }
 
     // Compute bounding rect of selected tiles on screen (before we remove them)
