@@ -278,6 +278,30 @@
       letter-spacing:.3px;
     }
 
+    /* "One away..." popup */
+    #oneAwayPopup{
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.95);
+      background: #111827;
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .3px;
+      padding: 14px 22px;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+      z-index: 999;
+    }
+    #oneAwayPopup.show{
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
     @media (max-width: 520px){
       header{ flex-direction:column; align-items:flex-start; }
       .controls{ justify-content:flex-start; }
@@ -318,13 +342,16 @@
     </div>
   </div>
 
+  <!-- One away popup -->
+  <div id="oneAwayPopup">One away&hellip;</div>
+
   <script>
     /******************************************************************
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
     const GROUPS = [
       { groupId: "ghostbusters", movieTitle: "Ghostbusters", difficulty: 1, posterImg: "/images/posters/ghostbusters.webp" },
-      { groupId: "knives_out", movieTitle: "Knives Out", difficulty: 2, posterImg: "/images/posters/knives out.jpg" },
+      { groupId: "knives_out", movieTitle: "Knives Out", difficulty: 2, posterImg: "/images/posters/knives_out.jpg" },
       { groupId: "oppenheimer", movieTitle: "Oppenheimer", difficulty: 3, posterImg: "/images/posters/oppenheimer.webp" },
       { groupId: "hurt_locker", movieTitle: "The Hurt Locker", difficulty: 4, posterImg: "/images/posters/hurt locker.jpeg" },
     ];
@@ -369,6 +396,8 @@
     const posterPop = document.getElementById("posterPop");
     const posterPopImg = document.getElementById("posterPopImg");
     const posterPopCap = document.getElementById("posterPopCap");
+
+    const oneAwayPopupEl = document.getElementById("oneAwayPopup");
 
     const groupById = new Map(GROUPS.map(g => [g.groupId, g]));
     const levelClass = (difficulty) => `lvl${difficulty}`;
@@ -434,6 +463,13 @@
       noise.connect(filter).connect(gain).connect(ctx.destination);
       noise.start(now);
       noise.stop(now + 0.21);
+    }
+
+    /* One-away popup */
+    function showOneAway(){
+      oneAwayPopupEl.classList.add("show");
+      clearTimeout(showOneAway._t);
+      showOneAway._t = setTimeout(() => oneAwayPopupEl.classList.remove("show"), 900);
     }
 
     // ---- FLIP animation helper for reordering/reflow of remaining tiles ----
@@ -616,9 +652,13 @@
         solveGroup(groupId, chosen, true);
       } else {
         // WRONG GUESS:
-        // 1) decrement attempts
-        // 2) shake selection
-        // 3) auto-deselect all (after shake so player sees feedback)
+        // Show "one away..." if 3 of the 4 are from the same group
+        const counts = {};
+        chosen.forEach(t => { counts[t.groupId] = (counts[t.groupId] || 0) + 1; });
+        const isOneAway = Object.values(counts).some(c => c === 3);
+        if (isOneAway) showOneAway();
+
+        // decrement attempts + shake
         attemptsLeft -= 1;
         updateAttempts();
 
@@ -626,7 +666,7 @@
         shakeSelectedTiles();
 
         if (attemptsLeft <= 0) {
-          // reveal with correct-style animation sequence
+          // auto-deselect after shake, then reveal with correct-style animation sequence
           setTimeout(() => {
             selected.clear();
             renderGrid();
@@ -697,7 +737,7 @@
       }, 520);
     }
 
-    // NEW: reveal answers with the SAME behavior as correct guesses
+    // Reveal answers with the SAME behavior as correct guesses
     function revealAnswersAnimated(){
       lockInput = true;
       btnSubmit.disabled = true;
@@ -706,7 +746,6 @@
 
       hidePosterPop(false);
 
-      // Remaining groups, difficulty order
       const remainingGroups = GROUPS
         .filter(g => !solvedGroups.has(g.groupId))
         .slice()
@@ -727,18 +766,13 @@
         const g = remainingGroups[i++];
         const chosenTiles = TILES.filter(t => t.groupId === g.groupId);
 
-        // If those tiles are still on the board (they should be), animate like a solve:
-        // (Use the exact same remove + FLIP flow)
-        // For reveal, we keep it silent or you can enable SFX by setting playSfx=true.
         const stillPresentIds = new Set(tiles.map(t => t.id));
         const presentTiles = chosenTiles.filter(t => stillPresentIds.has(t.id));
 
         if (presentTiles.length === 4) {
-          // play little sfx during reveal? (optional; feels nice)
           playDing();
           setTimeout(() => playWhoosh(), 70);
 
-          // rect based on current tile elements (before removing)
           const rect = getRectForTileIds(presentTiles.map(t => t.id));
 
           solvedGroups.add(g.groupId);
@@ -749,7 +783,6 @@
             memberNames: presentTiles.map(t => t.name)
           });
 
-          // remove and animate
           const removeIds = new Set(presentTiles.map(t => t.id));
           tiles = tiles.filter(t => !removeIds.has(t.id));
           selected.clear();
@@ -758,7 +791,7 @@
 
           if (rect) showPosterAtRect(g, rect);
         } else {
-          // Fallback: just add the bar (shouldn't happen, but safe)
+          // fallback
           if (!solvedGroups.has(g.groupId)) solvedGroups.add(g.groupId);
           const names = TILES.filter(t => t.groupId === g.groupId).map(t => t.name);
           solvedRows.push({
@@ -770,8 +803,8 @@
           renderAll();
         }
 
-        // queue next reveal after animations have time to play
-        setTimeout(step, 1200);
+        // change this number to slow/speed reveal
+        setTimeout(step, 620);
       }
 
       step();
@@ -783,19 +816,6 @@
       if (els.length === 0) return null;
 
       const rects = els.map(el => el.getBoundingClientRect());
-      const minLeft = Math.min(...rects.map(r => r.left));
-      const maxRight = Math.max(...rects.map(r => r.right));
-      const minTop = Math.min(...rects.map(r => r.top));
-      const maxBottom = Math.max(...rects.map(r => r.bottom));
-      return { left:minLeft, right:maxRight, top:minTop, bottom:maxBottom };
-    }
-
-    function getSelectionRect(){
-      const selectedEls = [...gridEl.querySelectorAll(".tile")]
-        .filter(el => selected.has(el.dataset.id));
-      if (selectedEls.length === 0) return null;
-
-      const rects = selectedEls.map(el => el.getBoundingClientRect());
       const minLeft = Math.min(...rects.map(r => r.left));
       const maxRight = Math.max(...rects.map(r => r.right));
       const minTop = Math.min(...rects.map(r => r.top));
