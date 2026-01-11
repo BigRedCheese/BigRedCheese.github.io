@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Movie Connections 80's Favorites</title>
+  <title>Movie Connections Rom Coms</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -351,7 +351,7 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Movie Connections 80's Favorites</h1>
+        <h1>Movie Connections Rom Coms</h1>
         <p class="sub">Select 4 actors from the same movie. Solve 4 groups.</p>
       </div>
       <div class="controls">
@@ -401,6 +401,7 @@
     // NEWEST FIRST
     const PUZZLE_ARCHIVE_FILES = [
           "010726.html"
+          "010826.html"
     ];
 
     let archiveExpanded = false;
@@ -469,33 +470,33 @@
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
     const GROUPS = [
-      { groupId: "airplane", movieTitle: "Airplane!", difficulty: 1, posterImg: "/airplane.jpg" },
-      { groupId: "the_terminator", movieTitle: "The Terminator", difficulty: 2, posterImg: "/terminator_1984_german_original_film_art_5000x.webp" },
-      { groupId: "stand_by_me", movieTitle: "Stand By Me", difficulty: 3, posterImg: "/standbyme.webp" },
-      { groupId: "twilight_zone_the_movie", movieTitle: "Twilight Zone: The Movie", difficulty: 4, posterImg: "/twilightzone.jpg" },
+      { groupId: "steel_magnolias", movieTitle: "Steel Magnolias", difficulty: 1, posterImg: "/images/posters/steel magnolias.jpg'" },
+      { groupId: "pretty_woman", movieTitle: "Pretty Woman", difficulty: 2, posterImg: "/images/poster/pretty woman.jpg" },
+      { groupId: "sleepless_in_seattle", movieTitle: "Sleepless in Seattle", difficulty: 3, posterImg: "images/poster/Sleepless_in_seattle.jpg" },
+      { groupId: "sweet_home_alabama", movieTitle: "Sweet Home Alabama", difficulty: 4, posterImg: "/images/poster/sweet home.jpg" },
     ];
 
     // EXACTLY 16 tiles. Exactly 4 tiles per groupId.
     const TILES = [
-      { id:"a1", name:"John Cusak", img:"/cusak.jpg", groupId:"stand_by_me" },
-      { id:"a2", name:"Kiefer Sutherland", img:"/sutherland.webp", groupId:"stand_by_me" },
-      { id:"a3", name:"Richard Dreyfuss", img:"/dreyfuss.jpg", groupId:"stand_by_me" },
-      { id:"a4", name:"River Phoenix", img:"/phoenix.webp", groupId:"stand_by_me" },
+      { id:"a1", name:"Tom Hanks", img:"/images/actors/hanks.jpg", groupId:"sleepless_in_seattle" },
+      { id:"a2", name:"Meg Ryan", img:"/images/actors/ryan.jpg", groupId:"sleepless_in_seattle" },
+      { id:"a3", name:"Jason Alexander", img:"/images/actors/alexander.webp", groupId:"sleepless_in_seattle" },
+      { id:"a4", name:"Hector Elizando", img:"/images/actors/elizando.webp", groupId:"sleepless_in_seattle" },
 
-      { id:"b1", name:"Peter Graves", img:"/Graves.jpg", groupId:"airplane" },
-      { id:"b2", name:"Kareem Abdul Jabar", img:"/Kareem.webp", groupId:"airplane" },
-      { id:"b3", name:"Leslie Nielsen", img:"/Leslie_Nielsen.jpg", groupId:"airplane" },
-      { id:"b4", name:"Lloyd Bridges", img:"/Bridges.jpeg", groupId:"airplane" },
+      { id:"b1", name:"Dolly Parton", img:"/images/actors/parton.webp", groupId:"steel_magnolias" },
+      { id:"b2", name:"Sally Field", img:"/images/actors/field.jpg", groupId:"steel_magnolias" },
+      { id:"b3", name:"Daryl Hannah", img:"/images/actors/hannah.avif", groupId:"steel_magnolias" },
+      { id:"b4", name:"Shirley MacLaine", img:"/images/actors/maclaine.jpg", groupId:"steel_magnolias" },
 
-      { id:"c1", name:"Burgess Meredith", img:"/meredith.jpeg", groupId:"twilight_zone_the_movie" },
-      { id:"c2", name:"John Lithgow", img:"/lithgow.jpg", groupId:"twilight_zone_the_movie" },
-      { id:"c3", name:"Dan Aykroyd", img:"/aykroyd.jpg", groupId:"twilight_zone_the_movie" },
-      { id:"c4", name:"Albert Brooks", img:"/brooks.jpg", groupId:"twilight_zone_the_movie" },
+      { id:"c1", name:"Reese Witherspoon", img:"/images/actors/witherspoon.jpg", groupId:"sweet_home_alabama" },
+      { id:"c2", name:"Patrick Dempsey", img:"/images/actors/dempsey.jpg", groupId:"sweet_home_alabama" },
+      { id:"c3", name:"Fred Ward", img:"/images/actors/ward.jpg", groupId:"sweet_home_alabama" },
+      { id:"c4", name:"Candice Bergen", img:"/images/actors/bergen.jpg", groupId:"sweet_home_alabama" },
 
-      { id:"d1", name:"Dick Miller", img:"/miller.webp", groupId:"the_terminator" },
-      { id:"d2", name:"Bill Paxton", img:"/paxton.jpg", groupId:"the_terminator" },
-      { id:"d3", name:"Lance Henriksen", img:"/Lance_Henriksen_Millennium.webp", groupId:"the_terminator" },
-      { id:"d4", name:"Michael Biehn", img:"/biehn.jpg", groupId:"the_terminator" },
+      { id:"d1", name:"Tom Hanks", img:"/images/actors/hanks.jpg", groupId:"pretty_woman" },
+      { id:"d2", name:"Meg Ryan", img:"/images/actors/ryan.jpg", groupId:"pretty_woman" },
+      { id:"d3", name:"Bill Pullman", img:"/images/actors/pullman.jpg", groupId:"pretty_woman" },
+      { id:"d4", name:"David Hyde Pierce", img:"/images/actors/pierce.webp", groupId:"pretty_woman" },
     ];
 
     /******************************************************************
