@@ -78,7 +78,9 @@
 
     /* Archive panel */
     .archive{
-      margin: 0 0 14px;
+      /* was: margin: 0 0 14px; (when it was above)
+         now it's below, so we give it space on top */
+      margin: 14px 0 0;
       background: var(--panel);
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 18px;
@@ -380,7 +382,7 @@
       </div>
     </div>
 
-    <!-- Archive list -->
+    <!-- Archive list (MOVED BELOW THE PUZZLE) -->
     <section class="archive">
       <div class="archiveHead">
         <h2>Past Puzzles</h2>
@@ -388,6 +390,7 @@
       </div>
       <ul id="archiveList"></ul>
     </section>
+
   </div>
 
   <!-- One away popup -->
@@ -400,10 +403,8 @@
      ******************************************************************/
     // NEWEST FIRST
     const PUZZLE_ARCHIVE_FILES = [
-      "010726.html",
-      // add more like:
-      // "010626.html",
-      // "010526.html",
+          "010726.html",
+          "010826.html",
     ];
 
     let archiveExpanded = false;
@@ -472,33 +473,33 @@
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
     const GROUPS = [
-      { groupId: "notting_hill", movieTitle: "Notting Hill", difficulty: 1, posterImg: "/images/posters/notting hill.jpg" },
+      { groupId: "steel_magnolias", movieTitle: "Steel Magnolias", difficulty: 1, posterImg: "/images/posters/steel magnolias.jpg'" },
       { groupId: "pretty_woman", movieTitle: "Pretty Woman", difficulty: 2, posterImg: "/images/posters/pretty woman.jpg" },
-      { groupId: "when_harry_met_sally", movieTitle: "When Harry Met Sally", difficulty: 3, posterImg: "/images/posters/when harry met sally.jpg" },
-      { groupId: "crazy_rich_asians", movieTitle: "Crazy Rich Asians", difficulty: 4, posterImg: "/images/posters/crazy rich asians.jpg" },
+      { groupId: "sleepless_in_seattle", movieTitle: "Sleepless in Seattle", difficulty: 3, posterImg: "images/posters/Sleepless_in_seattle.jpg" },
+      { groupId: "sweet_home_alabama", movieTitle: "Sweet Home Alabama", difficulty: 4, posterImg: "/images/posters/sweet home.jpg" },
     ];
 
     // EXACTLY 16 tiles. Exactly 4 tiles per groupId.
     const TILES = [
-      { id:"a1", name:"Julia Roberts", img:"/images/actors/julia roberts.webp", groupId:"pretty_woman" },
-      { id:"a2", name:"Richard Gere", img:"/images/actors/richard gere.jpg", groupId:"pretty_woman" },
-      { id:"a3", name:"Jason Alexander", img:"/images/actors/jason alexander.jpg", groupId:"pretty_woman" },
-      { id:"a4", name:"Hector Elizondo", img:"/images/actors/hector elizondo.jpg", groupId:"pretty_woman" },
+      { id:"a1", name:"Tom Hanks", img:"/images/actors/hanks.jpg", groupId:"sleepless_in_seattle" },
+      { id:"a2", name:"Meg Ryan", img:"/images/actors/ryan.jpg", groupId:"sleepless_in_seattle" },
+      { id:"a3", name:"Bill Pullman", img:"/images/actors/pullman.jpg", groupId:"sleepless_in_seattle" },
+      { id:"a4", name:"David Hyde Pierce", img:"/images/actors/pierce.webp", groupId:"sleepless_in_seattle" },
 
-      { id:"b1", name:"Hugh Grant", img:"/images/actors/hugh grant.webp", groupId:"notting_hill" },
-      { id:"b2", name:"Julia Roberts", img:"/images/actors/julia roberts.webp", groupId:"notting_hill" },
-      { id:"b3", name:"Rhys Ifans", img:"/images/actors/rhys ifans.webp", groupId:"notting_hill" },
-      { id:"b4", name:"Emma Chambers", img:"/images/actors/emma chambers.jpg", groupId:"notting_hill" },
+      { id:"b1", name:"Dolly Parton", img:"/images/actors/parton.webp", groupId:"steel_magnolias" },
+      { id:"b2", name:"Sally Field", img:"/images/actors/field.jpg", groupId:"steel_magnolias" },
+      { id:"b3", name:"Daryl Hannah", img:"/images/actors/hannah.avif", groupId:"steel_magnolias" },
+      { id:"b4", name:"Shirley MacLaine", img:"/images/actors/maclaine.jpg", groupId:"steel_magnolias" },
 
-      { id:"c1", name:"Meg Ryan", img:"/images/actors/meg ryan.webp", groupId:"when_harry_met_sally" },
-      { id:"c2", name:"Billy Crystal", img:"/images/actors/billy crystal.jpg", groupId:"when_harry_met_sally" },
-      { id:"c3", name:"Carrie Fisher", img:"/images/actors/carrie fisher.jpg", groupId:"when_harry_met_sally" },
-      { id:"c4", name:"Bruno Kirby", img:"/images/actors/bruno kirby.jpg", groupId:"when_harry_met_sally" },
+      { id:"c1", name:"Reese Witherspoon", img:"/images/actors/witherspoon.jpg", groupId:"sweet_home_alabama" },
+      { id:"c2", name:"Patrick Dempsey", img:"/images/actors/dempsey.jpg", groupId:"sweet_home_alabama" },
+      { id:"c3", name:"Fred Ward", img:"/images/actors/ward.jpg", groupId:"sweet_home_alabama" },
+      { id:"c4", name:"Candice Bergen", img:"/images/actors/bergen.jpg", groupId:"sweet_home_alabama" },
 
-      { id:"d1", name:"Constance Wu", img:"/images/actors/constance wu.webp", groupId:"crazy_rich_asians" },
-      { id:"d2", name:"Henry Golding", img:"/images/actors/henry golding.webp", groupId:"crazy_rich_asians" },
-      { id:"d3", name:"Michelle Yeoh", img:"/images/actors/michelle yeoh.webp", groupId:"crazy_rich_asians" },
-      { id:"d4", name:"Awkwafina", img:"/images/actors/awkwafina.webp", groupId:"crazy_rich_asians" },
+      { id:"d1", name:"Richard Gere", img:"/images/actors/gere.webp", groupId:"pretty_woman" },
+      { id:"d2", name:"Julia Roberts", img:"/images/actors/roberts.avif", groupId:"pretty_woman" },
+      { id:"d3", name:"Jason Alexander", img:"/images/actors/alexander.webp", groupId:"pretty_woman" },
+      { id:"d4", name:"Hector Elizando", img:"/images/actors/elizondo.webp", groupId:"pretty_woman" },
     ];
 
     /******************************************************************
