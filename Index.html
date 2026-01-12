@@ -78,8 +78,7 @@
 
     /* Archive panel */
     .archive{
-      /* was: margin: 0 0 14px; (when it was above)
-         now it's below, so we give it space on top */
+      /* moved below the board, so give it top spacing */
       margin: 14px 0 0;
       background: var(--panel);
       border: 1px solid rgba(0,0,0,.06);
@@ -383,6 +382,7 @@
     </div>
 
     <!-- Archive list (MOVED BELOW THE PUZZLE) -->
+    <!-- Archive list -->
     <section class="archive">
       <div class="archiveHead">
         <h2>Past Puzzles</h2>
@@ -647,7 +647,6 @@
       setMsg("Select <strong>4</strong> actors that share a movie.");
       updateAttempts();
 
-      // archive is purely UI; render it too
       renderArchive();
     }
 
@@ -762,7 +761,6 @@
       if (lockInput) return;
       if (selected.size !== 4) return;
 
-      // ensure audio ready (browser requires user gesture)
       getAudioCtx();
 
       const chosen = [...selected].map(id => tiles.find(t => t.id === id)).filter(Boolean);
@@ -779,7 +777,6 @@
       if (allSame && groupById.has(groupId)) {
         solveGroup(groupId, chosen, true);
       } else {
-        // "One away..." if 3 of 4 share same groupId
         const counts = {};
         chosen.forEach(t => { counts[t.groupId] = (counts[t.groupId] || 0) + 1; });
         if (Object.values(counts).some(c => c === 3)) showOneAway();
@@ -790,12 +787,11 @@
         lockInput = true;
         shakeSelectedTiles();
 
-        // auto-deselect on wrong guess (after shake so they see the feedback)
         if (attemptsLeft <= 0) {
           setTimeout(() => {
             selected.clear();
             renderGrid();
-            revealAnswersAnimated(); // reveal answers (animated like correct)
+            revealAnswersAnimated();
           }, 360);
           return;
         }
@@ -905,7 +901,6 @@
 
           if (rect) showPosterAtRect(g, rect);
         } else {
-          // safe fallback (shouldn't happen)
           if (!solvedGroups.has(g.groupId)) solvedGroups.add(g.groupId);
           solvedRows.push({
             groupId: g.groupId,
@@ -935,6 +930,21 @@
       return { left:minLeft, right:maxRight, top:minTop, bottom:maxBottom };
     }
 
+    function normalizeAssetPath(path){
+      if (!path) return path;
+      let s = String(path).trim();
+      // remove stray wrapping quotes (and common accidental trailing quote)
+      s = s.replace(/^['"]+|['"]+$/g, "");
+      s = s.replace(/\s+/g, " ").trim();
+      // encode spaces for URLs
+      s = s.replace(/ /g, "%20");
+      // if it's a relative path without ./ or /, prefix ./
+      if (!/^https?:\/\//i.test(s) && !s.startsWith("/") && !s.startsWith("./") && !s.startsWith("../")) {
+        s = "./" + s;
+      }
+      return s;
+    }
+
     function showPosterAtRect(group, rect){
       const boardRect = boardEl.getBoundingClientRect();
       const popW = 160;
@@ -945,7 +955,8 @@
       const left = clamp(centerX - boardRect.left - popW/2, 8, boardRect.width - popW - 8);
       const top = clamp(topY - boardRect.top - 180, 8, boardRect.height - 220);
 
-      posterPopImg.src = group.posterImg;
+      // normalize so your existing data still works (spaces, missing slash, stray quotes)
+      posterPopImg.src = normalizeAssetPath(group.posterImg);
       posterPopCap.textContent = group.movieTitle;
 
       posterPop.style.left = `${left}px`;
