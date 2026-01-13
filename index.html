@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Film Connections - Characters</title>
+  <title>Movie Connections - Characters</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -37,7 +37,7 @@
 
     header{
       display:flex;
-      align-items:flex-end;
+      align-items:center;
       justify-content:space-between;
       gap:16px;
       margin-bottom: 14px;
@@ -52,6 +52,29 @@
       color:var(--muted);
       font-size: 14px;
     }
+
+    /* Home title logo (click to return to today's puzzle) */
+    .homeLogo{
+      display:inline-flex;
+      align-items:center;
+      text-decoration:none;
+      line-height:0;
+      flex: 0 0 auto;
+    }
+    .homeLogo img{
+      height: 54px;
+      width: auto;
+      display:block;
+      border-radius: 10px;
+      user-select:none;
+      -webkit-user-drag: none;
+      transition: transform .08s ease, filter .15s ease;
+    }
+    .homeLogo:hover img{
+      transform: translateY(-1px);
+      filter: saturate(1.05) contrast(1.05);
+    }
+    .homeLogo:active img{ transform: translateY(0); }
 
     .controls{
       display:flex;
@@ -351,8 +374,11 @@
 <body>
   <div class="wrap">
     <header>
+      <a class="homeLogo" href="./index.html" aria-label="Go to today's puzzle (home)">
+        <img src="title.png" alt="Film Connections" />
+      </a>
       <div>
-        <h1>Film Connections - Characters</h1>
+        <h1>Movie Connections - Characters</h1>
         <p class="sub">Select 4 actors who all played the same character. Solve 4 groups.</p>
       </div>
       <div class="controls">
