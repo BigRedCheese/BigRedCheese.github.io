@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Movie Connections Rom Coms</title>
+  <title>Movie Connections - Characters</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -352,8 +352,8 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Movie Connections Rom Coms</h1>
-        <p class="sub">Select 4 actors from the same movie. Solve 4 groups.</p>
+        <h1>Movie Connections - Characters</h1>
+        <p class="sub">Select 4 actors who all played the same character. Solve 4 groups.</p>
       </div>
       <div class="controls">
         <button id="btnShuffle" type="button">Shuffle</button>
@@ -405,6 +405,7 @@
     const PUZZLE_ARCHIVE_FILES = [
           "010726.html",
           "010826.html",
+          "011226.html",
     ];
 
     let archiveExpanded = false;
@@ -473,33 +474,33 @@
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
     const GROUPS = [
-      { groupId: "steel_magnolias", movieTitle: "Steel Magnolias", difficulty: 1, posterImg: "images/posters/steel_magnolias.jpg" },
-      { groupId: "pretty_woman", movieTitle: "Pretty Woman", difficulty: 2, posterImg: "images/posters/pretty_woman.jpg" },
-      { groupId: "sleepless_in_seattle", movieTitle: "Sleepless in Seattle", difficulty: 3, posterImg: "images/posters/Sleepless_in_seattle.jpg" },
-      { groupId: "sweet_home_alabama", movieTitle: "Sweet Home Alabama", difficulty: 4, posterImg: "images/posters/sweet_home.jpg" },
+      { groupId: "james_bond", movieTitle: "James Bond", difficulty: 1, posterImg: "images/posters/bond.jpg" },
+      { groupId: "batman", movieTitle: "Batman", difficulty: 2, posterImg: "images/posters/batman.webp" },
+      { groupId: "sherlock_holmes", movieTitle: "Sherlock Holmes", difficulty: 3, posterImg: "images/posters/sherlock.jpg" },
+      { groupId: "jack-ryan", movieTitle: "Jack Ryan", difficulty: 4, posterImg: "images/posters/ryan.webp" },
     ];
 
     // EXACTLY 16 tiles. Exactly 4 tiles per groupId.
     const TILES = [
-      { id:"a1", name:"Tom Hanks", img:"/images/actors/hanks.jpg", groupId:"sleepless_in_seattle" },
-      { id:"a2", name:"Meg Ryan", img:"/images/actors/ryan.jpg", groupId:"sleepless_in_seattle" },
-      { id:"a3", name:"Bill Pullman", img:"/images/actors/pullman.jpg", groupId:"sleepless_in_seattle" },
-      { id:"a4", name:"David Hyde Pierce", img:"/images/actors/pierce.webp", groupId:"sleepless_in_seattle" },
+      { id:"a1", name:"Benedict Cumberbatch", img:"/images/actors/cumberbatch.avif", groupId:"sherlock_holmes" },
+      { id:"a2", name:"Robert Downey Jr", img:"/images/actors/downey.jpg", groupId:"sherlock_holmes" },
+      { id:"a3", name:"Will Ferrell", img:"/images/actors/ferrell.webp", groupId:"sherlock_holmes" },
+      { id:"a4", name:"Henry Cavill", img:"/images/actors/cavill.webp", groupId:"sherlock_holmes" },
 
-      { id:"b1", name:"Dolly Parton", img:"/images/actors/parton.webp", groupId:"steel_magnolias" },
-      { id:"b2", name:"Sally Field", img:"/images/actors/field.jpg", groupId:"steel_magnolias" },
-      { id:"b3", name:"Daryl Hannah", img:"/images/actors/hannah.avif", groupId:"steel_magnolias" },
-      { id:"b4", name:"Shirley MacLaine", img:"/images/actors/maclaine.jpg", groupId:"steel_magnolias" },
+      { id:"b1", name:"Roger Moore", img:"/images/actors/moore.webp", groupId:"james_bond" },
+      { id:"b2", name:"Sean Connery", img:"/images/actors/connery.webp", groupId:"james_bond" },
+      { id:"b3", name:"Daniel Craig", img:"/images/actors/craig.webp", groupId:"james_bond" },
+      { id:"b4", name:"Pierce Brosnan", img:"/images/actors/brosnan.jpg", groupId:"james_bond" },
 
-      { id:"c1", name:"Reese Witherspoon", img:"/images/actors/witherspoon.jpg", groupId:"sweet_home_alabama" },
-      { id:"c2", name:"Patrick Dempsey", img:"/images/actors/dempsey.jpg", groupId:"sweet_home_alabama" },
-      { id:"c3", name:"Fred Ward", img:"/images/actors/ward.jpg", groupId:"sweet_home_alabama" },
-      { id:"c4", name:"Candice Bergen", img:"/images/actors/bergen.jpg", groupId:"sweet_home_alabama" },
+      { id:"c1", name:"John Krasinski", img:"/images/actors/krasinski.jpg", groupId:"jack-ryan" },
+      { id:"c2", name:"Alec Baldwin", img:"/images/actors/baldwin.jpg", groupId:"jack-ryan" },
+      { id:"c3", name:"Harrison Ford", img:"/images/actors/ford.webp", groupId:"jack-ryan" },
+      { id:"c4", name:"Chris Pine", img:"/images/actors/pine.jpg", groupId:"jack-ryan" },
 
-      { id:"d1", name:"Richard Gere", img:"/images/actors/gere.webp", groupId:"pretty_woman" },
-      { id:"d2", name:"Julia Roberts", img:"/images/actors/roberts.avif", groupId:"pretty_woman" },
-      { id:"d3", name:"Jason Alexander", img:"/images/actors/alexander.webp", groupId:"pretty_woman" },
-      { id:"d4", name:"Hector Elizando", img:"/images/actors/elizondo.webp", groupId:"pretty_woman" },
+      { id:"d1", name:"Michael Keaton", img:"/images/actors/keaton.jpg", groupId:"batman" },
+      { id:"d2", name:"Ben Affleck", img:"/images/actors/affleck.jpg", groupId:"batman" },
+      { id:"d3", name:"Val Kilmer", img:"/images/actors/kilmer.jpg", groupId:"batman" },
+      { id:"d4", name:"George Clooney", img:"/clooney.jpg", groupId:"batman" },
     ];
 
     /******************************************************************
