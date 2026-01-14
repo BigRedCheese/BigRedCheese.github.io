@@ -565,65 +565,91 @@
     const REVEAL_DELAY_MS = 900; // set higher to reveal slower
 
     // ---- Sound (no external files needed) ----
+    // GitHub Pages (and Safari) can keep WebAudio "suspended" unless it is resumed
+    // directly from a user gesture. We "prime" it on the first interaction, and
+    // we also wait for resume() before playing tones so it’s reliable everywhere.
     let audioCtx = null;
 
     function getAudioCtx(){
-      // Create lazily (must be created from a user gesture on some browsers)
-      if (!audioCtx || audioCtx.state === "closed") {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      // Safari/iOS can report "interrupted" (non-standard) after focus changes
-      if (audioCtx.state === "suspended" || audioCtx.state === "interrupted") {
-        try { audioCtx.resume(); } catch (e) {}
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       return audioCtx;
     }
 
-    function playDing(){
+    async function ensureAudioRunning(){
       const ctx = getAudioCtx();
-      const now = ctx.currentTime;
+      if (ctx.state !== "running"){
+        try { await ctx.resume(); } catch(e) {}
+      }
+      return ctx;
+    }
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+    function primeAudio(){
+      // Resume once, then play a tiny silent blip to fully unlock on iOS/Safari.
+      ensureAudioRunning().then((ctx) => {
+        try{
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          gain.gain.value = 0.000001; // effectively silent
+          osc.frequency.value = 440;
+          osc.connect(gain).connect(ctx.destination);
+          const t = ctx.currentTime;
+          osc.start(t);
+          osc.stop(t + 0.01);
+        } catch(e) {}
+      });
+    }
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+    // Prime audio on first user interaction
+    window.addEventListener("pointerdown", primeAudio, { once:true, passive:true });
+    window.addEventListener("keydown", primeAudio, { once:true });
 
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+    function playDing(){
+      ensureAudioRunning().then((ctx) => {
+        const now = ctx.currentTime;
 
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.26);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      });
     }
 
     function playWhoosh(){
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
+      ensureAudioRunning().then((ctx) => {
+        const now = ctx.currentTime;
 
-      const bufferSize = Math.floor(ctx.sampleRate * 0.2);
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1);
+        const bufferSize = Math.floor(ctx.sampleRate * 0.2);
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1);
 
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = "highpass";
-      filter.frequency.setValueAtTime(400, now);
-      filter.frequency.exponentialRampToValueAtTime(1800, now + 0.18);
+        const filter = ctx.createBiquadFilter();
+        filter.type = "highpass";
+        filter.frequency.setValueAtTime(400, now);
+        filter.frequency.exponentialRampToValueAtTime(1800, now + 0.18);
 
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
-      noise.connect(filter).connect(gain).connect(ctx.destination);
-      noise.start(now);
-      noise.stop(now + 0.21);
+        noise.connect(filter).connect(gain).connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.21);
+      });
     }
 
     function showOneAway(){
@@ -1039,25 +1065,6 @@
     function clamp(v, min, max){
       return Math.max(min, Math.min(max, v));
     }
-
-
-// ---- Audio priming (helps Safari/iOS autoplay policies) ----
-let audioPrimed = false;
-function primeAudio(){
-  if (audioPrimed) return;
-  audioPrimed = true;
-  try{
-    const ctx = getAudioCtx();
-    if (ctx && ctx.state !== "running") {
-      const p = ctx.resume();
-      if (p && typeof p.catch === "function") p.catch(()=>{});
-    }
-  }catch(e){}
-}
-
-// Prime audio on first user interaction
-window.addEventListener("pointerdown", primeAudio, { once: true });
-window.addEventListener("keydown", primeAudio, { once: true });
 
     // Buttons
     btnShuffle.addEventListener("click", shuffleTiles);
