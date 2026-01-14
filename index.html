@@ -283,25 +283,11 @@
       transform: translateY(0);
     }
     .board-scale{
-  transform-origin: top left;
-}
+      transform-origin: top left;
+      transform: scale(var(--boardScale, 1));
+      transition: transform .15s ease;
+    }
 
-@media (max-height: 820px){
-  .board-scale{
-    transform: scale(0.95);
-  }
-}
-
-@media (max-height: 760px){
-  .board-scale{
-    transform: scale(0.9);
-  }
-}
-
-@media (max-height: 700px){
-  .board-scale{
-    transform: scale(0.85);
-  }
 }
 
     .tile.selected{
@@ -422,7 +408,7 @@
         <div class="posterCaption" id="posterPopCap"></div>
       </div>
     </div>
-  <div>
+    </div>
 
     <!-- Archive list (MOVED BELOW THE PUZZLE) -->
     <!-- Archive list -->
@@ -700,6 +686,8 @@
     function renderAll(){
       renderSolvedBars();
       renderGrid();
+      // keep layout fitting as rows appear/disappear
+      if (typeof applyBoardScale === 'function') setTimeout(applyBoardScale, 0);
     }
 
     function renderSolvedBars(){
@@ -1059,7 +1047,44 @@
       if (e.key === "Enter") submit();
     });
 
+
+    /******************************************************************
+     * AUTO-SCALE (shrink the board so everything fits on one screen)
+     ******************************************************************/
+    function applyBoardScale(){
+      const wrap = document.querySelector(".wrap");
+      const boardScale = document.querySelector(".board-scale");
+      if (!wrap || !boardScale) return;
+
+      // Reset to measure natural sizes (no scaling)
+      boardScale.style.setProperty("--boardScale", 1);
+
+      // Measure after reset
+      const boardH = boardScale.getBoundingClientRect().height;
+      const totalH = wrap.getBoundingClientRect().height;
+      const otherH = totalH - boardH;
+
+      // Available vertical space for the board portion
+      const availableForBoard = window.innerHeight - otherH - 8;
+
+      let s = 1;
+      if (availableForBoard > 0 && boardH > 0) {
+        s = Math.min(1, availableForBoard / boardH);
+      }
+      // Don't crush it too small
+      s = Math.max(0.75, s);
+
+      boardScale.style.setProperty("--boardScale", s.toFixed(3));
+    }
+
+    // Recompute scale on load + resize
+    window.addEventListener("resize", () => {
+      clearTimeout(window.__scaleT);
+      window.__scaleT = setTimeout(applyBoardScale, 60);
+    });
+
     init();
+    setTimeout(applyBoardScale, 0);
   </script>
 </body>
 </html>
