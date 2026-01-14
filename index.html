@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Movie Connections - Characters</title>
+  <title>Film Connections - Characters</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -20,6 +20,26 @@
       --lvl3:#8bc5ff;
       --lvl4:#c6a6ff; /* hardest */
     }
+     .title-button{
+  font-size: 42px;
+  font-weight: 900;
+  text-decoration: none;
+  color: #111827;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.1s ease, color 0.15s ease;
+}
+
+.title-button:hover{
+  color: #2563eb; /* subtle blue hover */
+}
+.title-button{
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+
+.title-button:active{
+  transform: translateY(1px);
+}
 
     *{box-sizing:border-box}
     body{
@@ -37,7 +57,7 @@
 
     header{
       display:flex;
-      align-items:center;
+      align-items:flex-end;
       justify-content:space-between;
       gap:16px;
       margin-bottom: 14px;
@@ -52,29 +72,6 @@
       color:var(--muted);
       font-size: 14px;
     }
-
-    /* Home title logo (click to return to today's puzzle) */
-    .homeLogo{
-      display:inline-flex;
-      align-items:center;
-      text-decoration:none;
-      line-height:0;
-      flex: 0 0 auto;
-    }
-    .homeLogo img{
-      height: 54px;
-      width: auto;
-      display:block;
-      border-radius: 10px;
-      user-select:none;
-      -webkit-user-drag: none;
-      transition: transform .08s ease, filter .15s ease;
-    }
-    .homeLogo:hover img{
-      transform: translateY(-1px);
-      filter: saturate(1.05) contrast(1.05);
-    }
-    .homeLogo:active img{ transform: translateY(0); }
 
     .controls{
       display:flex;
@@ -142,7 +139,7 @@
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 18px;
       box-shadow: var(--shadow);
-      padding: 16px;
+      padding: 12px;
     }
 
     .statusRow{
@@ -233,7 +230,7 @@
     .grid{
       display:grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 6px;
     }
 
     .tile{
@@ -285,6 +282,27 @@
       opacity:1;
       transform: translateY(0);
     }
+    .board-scale{
+  transform-origin: top left;
+}
+
+@media (max-height: 820px){
+  .board-scale{
+    transform: scale(0.95);
+  }
+}
+
+@media (max-height: 760px){
+  .board-scale{
+    transform: scale(0.9);
+  }
+}
+
+@media (max-height: 700px){
+  .board-scale{
+    transform: scale(0.85);
+  }
+}
 
     .tile.selected{
       border-color: transparent;
@@ -374,11 +392,8 @@
 <body>
   <div class="wrap">
     <header>
-      <a class="homeLogo" href="./index.html" aria-label="Go to today's puzzle (home)">
-        <img src="title.png" alt="Film Connections" />
-      </a>
       <div>
-        <h1>Movie Connections - Characters</h1>
+        <a href="index.html" class="title-button">Film Connections - Characters</a>
         <p class="sub">Select 4 actors who all played the same character. Solve 4 groups.</p>
       </div>
       <div class="controls">
@@ -389,11 +404,12 @@
       </div>
     </header>
 
-    <div class="board" id="board">
-      <div class="statusRow">
-        <div class="msg" id="msg"></div>
-        <div class="attempts" id="attempts"></div>
-      </div>
+    <div class="board-scale">
+      <div class="board" id="board">
+        <div class="statusRow">
+          <div class="msg" id="msg"></div>
+          <div class="attempts" id="attempts"></div>
+        </div>
 
       <!-- NYT-style solved category bars -->
       <div class="solvedBars" id="solvedBars"></div>
@@ -406,6 +422,7 @@
         <div class="posterCaption" id="posterPopCap"></div>
       </div>
     </div>
+  <div>
 
     <!-- Archive list (MOVED BELOW THE PUZZLE) -->
     <!-- Archive list -->
