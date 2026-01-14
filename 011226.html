@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Film Connections Rom Coms</title>
+  <title>Film Connections - Rom Coms</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -20,6 +20,26 @@
       --lvl3:#8bc5ff;
       --lvl4:#c6a6ff; /* hardest */
     }
+     .title-button{
+  font-size: 42px;
+  font-weight: 900;
+  text-decoration: none;
+  color: #111827;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.1s ease, color 0.15s ease;
+}
+
+.title-button:hover{
+  color: #2563eb; /* subtle blue hover */
+}
+.title-button{
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+
+.title-button:active{
+  transform: translateY(1px);
+}
 
     *{box-sizing:border-box}
     body{
@@ -79,7 +99,7 @@
     /* Archive panel */
     .archive{
       /* moved below the board, so give it top spacing */
-      margin: 14px 0 0;
+      margin: 6px 0 0;
       background: var(--panel);
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 18px;
@@ -119,7 +139,7 @@
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 18px;
       box-shadow: var(--shadow);
-      padding: 16px;
+      padding: 12px;
     }
 
     .statusRow{
@@ -210,7 +230,7 @@
     .grid{
       display:grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 6px;
     }
 
     .tile{
@@ -262,6 +282,12 @@
       opacity:1;
       transform: translateY(0);
     }
+    .board-scale{
+      transform-origin: top left;
+      transform: scale(var(--boardScale, 1));
+      transition: transform .15s ease;
+    }
+
 
     .tile.selected{
       border-color: transparent;
@@ -352,8 +378,8 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Film Connections Rom Coms</h1>
-        <p class="sub">Select 4 actors from the same movie. Solve 4 groups.</p>
+        <a href="index.html" class="title-button">Film Connections - Rom Coms</a>
+        <p class="sub">Select 4 actors who were all in the same film. Solve 4 groups.</p>
       </div>
       <div class="controls">
         <button id="btnShuffle" type="button">Shuffle</button>
@@ -363,11 +389,12 @@
       </div>
     </header>
 
-    <div class="board" id="board">
-      <div class="statusRow">
-        <div class="msg" id="msg"></div>
-        <div class="attempts" id="attempts"></div>
-      </div>
+    <div class="board-scale">
+      <div class="board" id="board">
+        <div class="statusRow">
+          <div class="msg" id="msg"></div>
+          <div class="attempts" id="attempts"></div>
+        </div>
 
       <!-- NYT-style solved category bars -->
       <div class="solvedBars" id="solvedBars"></div>
@@ -379,6 +406,7 @@
         <img id="posterPopImg" alt="Movie poster" />
         <div class="posterCaption" id="posterPopCap"></div>
       </div>
+    </div>
     </div>
 
     <!-- Archive list (MOVED BELOW THE PUZZLE) -->
@@ -405,6 +433,7 @@
     const PUZZLE_ARCHIVE_FILES = [
           "010726.html",
           "010826.html",
+          "011226.html",
     ];
 
     let archiveExpanded = false;
@@ -472,7 +501,7 @@
     /******************************************************************
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
-    const GROUPS = [
+   const GROUPS = [
       { groupId: "steel_magnolias", movieTitle: "Steel Magnolias", difficulty: 1, posterImg: "images/posters/steel_magnolias.jpg" },
       { groupId: "pretty_woman", movieTitle: "Pretty Woman", difficulty: 2, posterImg: "images/posters/pretty_woman.jpg" },
       { groupId: "sleepless_in_seattle", movieTitle: "Sleepless in Seattle", difficulty: 3, posterImg: "images/posters/Sleepless_in_seattle.jpg" },
@@ -536,59 +565,95 @@
     const REVEAL_DELAY_MS = 900; // set higher to reveal slower
 
     // ---- Sound (no external files needed) ----
+    // GitHub Pages (and Safari) can keep WebAudio "suspended" unless it is resumed
+    // directly from a user gesture. We "prime" it on the first interaction, and
+    // we also wait for resume() before playing tones so it’s reliable everywhere.
     let audioCtx = null;
 
     function getAudioCtx(){
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") audioCtx.resume();
       return audioCtx;
     }
 
-    function playDing(){
+    async function ensureAudioRunning(){
       const ctx = getAudioCtx();
-      const now = ctx.currentTime;
+      if (ctx.state !== "running"){
+        try { await ctx.resume(); } catch(e) {}
+      }
+      return ctx;
+    }
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+    function primeAudio(){
+      const ctx = getAudioCtx();
+      // Resume synchronously inside the user gesture (Safari/iOS is strict about this).
+      if (ctx.state !== "running") {
+        try { ctx.resume(); } catch(e) {}
+      }
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+      // tiny silent blip to fully unlock on iOS/Safari
+      try{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.000001; // effectively silent
+        osc.frequency.value = 440;
+        osc.connect(gain).connect(ctx.destination);
+        const t = ctx.currentTime;
+        osc.start(t);
+        osc.stop(t + 0.01);
+      } catch(e) {}
+    }
 
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+    // Prime audio on first user interaction
+    window.addEventListener("pointerdown", primeAudio, { once:true, passive:true });
+    window.addEventListener("keydown", primeAudio, { once:true });
 
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.26);
+    function playDing(){
+      ensureAudioRunning().then((ctx) => {
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      });
     }
 
     function playWhoosh(){
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
+      ensureAudioRunning().then((ctx) => {
+        const now = ctx.currentTime;
 
-      const bufferSize = Math.floor(ctx.sampleRate * 0.2);
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1);
+        const bufferSize = Math.floor(ctx.sampleRate * 0.2);
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1);
 
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = "highpass";
-      filter.frequency.setValueAtTime(400, now);
-      filter.frequency.exponentialRampToValueAtTime(1800, now + 0.18);
+        const filter = ctx.createBiquadFilter();
+        filter.type = "highpass";
+        filter.frequency.setValueAtTime(400, now);
+        filter.frequency.exponentialRampToValueAtTime(1800, now + 0.18);
 
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
-      noise.connect(filter).connect(gain).connect(ctx.destination);
-      noise.start(now);
-      noise.stop(now + 0.21);
+        noise.connect(filter).connect(gain).connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.21);
+      });
     }
 
     function showOneAway(){
@@ -656,6 +721,8 @@
     function renderAll(){
       renderSolvedBars();
       renderGrid();
+      // keep layout fitting as rows appear/disappear
+      if (typeof applyBoardScale === 'function') setTimeout(applyBoardScale, 0);
     }
 
     function renderSolvedBars(){
@@ -761,7 +828,7 @@
       if (lockInput) return;
       if (selected.size !== 4) return;
 
-      getAudioCtx();
+      primeAudio();
 
       const chosen = [...selected].map(id => tiles.find(t => t.id === id)).filter(Boolean);
       if (chosen.length !== 4) return;
@@ -1015,7 +1082,49 @@
       if (e.key === "Enter") submit();
     });
 
+
+    /******************************************************************
+     * AUTO-SCALE (shrink the board so everything fits on one screen)
+     ******************************************************************/
+    function applyBoardScale(){
+      const wrap = document.querySelector(".wrap");
+      const boardScale = document.querySelector(".board-scale");
+      if (!wrap || !boardScale) return;
+
+      // Reset to measure natural sizes (no scaling)
+      boardScale.style.setProperty("--boardScale", 1);
+
+      // Measure after reset
+      const boardH = boardScale.getBoundingClientRect().height;
+      const totalH = wrap.getBoundingClientRect().height;
+      const otherH = totalH - boardH;
+
+      // Available vertical space for the board portion
+      const availableForBoard = window.innerHeight - otherH - 8;
+
+      let s = 1;
+      if (availableForBoard > 0 && boardH > 0) {
+        s = Math.min(1, availableForBoard / boardH);
+      }
+      // Don't crush it too small
+      s = Math.max(0.75, s);
+
+      boardScale.style.setProperty("--boardScale", s.toFixed(3));
+
+      // Because CSS transform does not change document flow height, pull up the content below
+      // so the archive box stays close to the scaled board.
+      const gap = Math.round(boardH * (1 - s));
+      boardScale.style.marginBottom = gap > 0 ? `-${gap}px` : "0px";
+}
+
+    // Recompute scale on load + resize
+    window.addEventListener("resize", () => {
+      clearTimeout(window.__scaleT);
+      window.__scaleT = setTimeout(applyBoardScale, 60);
+    });
+
     init();
+    setTimeout(applyBoardScale, 0);
   </script>
 </body>
 </html>
