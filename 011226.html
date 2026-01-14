@@ -371,15 +371,80 @@
       .posterPop{ width: 140px; }
       .solvedActors{ max-width: 260px; }
     }
-  </style>
+  
+/* --- Title image button + daily category layout --- */
+.title-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap: nowrap;
+}
+
+.title-image-link{
+  text-decoration:none;
+  line-height:0;
+}
+
+.title-image{
+  height: 110px;     /* uses PNG’s natural aspect ratio */
+  width: auto;
+  display: block;
+  background: transparent;
+}
+
+.title-image-link:hover .title-image{
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.title-image-link:active .title-image{
+  transform: translateY(1px);
+  filter: brightness(0.98);
+}
+
+.title-theme{
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #111827;
+}
+
+
+
+
+/* --- Title button overrides (transparent PNG + category to the right) --- */
+.title-image-link{ line-height:0; }
+.title-button{
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: inline-block;
+}
+.title-row{
+  flex-wrap: nowrap;
+}
+.title-theme{
+  white-space: nowrap;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+}
+
+</style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
       <div>
-        <a href="index.html" class="title-button">Film Connections - Rom Coms</a>
-        <p class="sub">Select 4 actors who were all in the same film. Solve 4 groups.</p>
+        <div class="title-row">
+          <a href="index.html" class="title-button title-image-link" aria-label="Go to today’s puzzle">
+            <img src="/images/film-connections-button.png" alt="Film Connections" class="title-image">
+          </a>
+          <span class="title-theme">Rom Coms</span>
+        </div>
+        <p class="sub">Select 4 actors who were all in the same movie. Solve 4 groups.</p>
       </div>
       <div class="controls">
         <button id="btnShuffle" type="button">Shuffle</button>
@@ -501,7 +566,7 @@
     /******************************************************************
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
-   const GROUPS = [
+    const GROUPS = [
       { groupId: "steel_magnolias", movieTitle: "Steel Magnolias", difficulty: 1, posterImg: "images/posters/steel_magnolias.jpg" },
       { groupId: "pretty_woman", movieTitle: "Pretty Woman", difficulty: 2, posterImg: "images/posters/pretty_woman.jpg" },
       { groupId: "sleepless_in_seattle", movieTitle: "Sleepless in Seattle", difficulty: 3, posterImg: "images/posters/Sleepless_in_seattle.jpg" },
@@ -530,7 +595,6 @@
       { id:"d3", name:"Jason Alexander", img:"/images/actors/alexander.webp", groupId:"pretty_woman" },
       { id:"d4", name:"Hector Elizando", img:"/images/actors/elizondo.webp", groupId:"pretty_woman" },
     ];
-
     /******************************************************************
      * GAME ENGINE
      ******************************************************************/
@@ -709,7 +773,7 @@
       hidePosterPop(true);
       renderAll();
 
-      setMsg("Select <strong>4</strong> actors that share a movie.");
+      setMsg("Select <strong>4</strong> actors who were in the same movie.");
       updateAttempts();
 
       renderArchive();
