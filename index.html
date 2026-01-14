@@ -568,8 +568,14 @@
     let audioCtx = null;
 
     function getAudioCtx(){
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") audioCtx.resume();
+      // Create lazily (must be created from a user gesture on some browsers)
+      if (!audioCtx || audioCtx.state === "closed") {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      // Safari/iOS can report "interrupted" (non-standard) after focus changes
+      if (audioCtx.state === "suspended" || audioCtx.state === "interrupted") {
+        try { audioCtx.resume(); } catch (e) {}
+      }
       return audioCtx;
     }
 
@@ -1033,6 +1039,25 @@
     function clamp(v, min, max){
       return Math.max(min, Math.min(max, v));
     }
+
+
+// ---- Audio priming (helps Safari/iOS autoplay policies) ----
+let audioPrimed = false;
+function primeAudio(){
+  if (audioPrimed) return;
+  audioPrimed = true;
+  try{
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state !== "running") {
+      const p = ctx.resume();
+      if (p && typeof p.catch === "function") p.catch(()=>{});
+    }
+  }catch(e){}
+}
+
+// Prime audio on first user interaction
+window.addEventListener("pointerdown", primeAudio, { once: true });
+window.addEventListener("keydown", primeAudio, { once: true });
 
     // Buttons
     btnShuffle.addEventListener("click", shuffleTiles);
