@@ -99,7 +99,7 @@
     /* Archive panel */
     .archive{
       /* moved below the board, so give it top spacing */
-      margin: 14px 0 0;
+      margin: 6px 0 0;
       background: var(--panel);
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 18px;
@@ -288,7 +288,6 @@
       transition: transform .15s ease;
     }
 
-}
 
     .tile.selected{
       border-color: transparent;
@@ -1075,7 +1074,12 @@
       s = Math.max(0.75, s);
 
       boardScale.style.setProperty("--boardScale", s.toFixed(3));
-    }
+
+      // Because CSS transform does not change document flow height, pull up the content below
+      // so the archive box stays close to the scaled board.
+      const gap = Math.round(boardH * (1 - s));
+      boardScale.style.marginBottom = gap > 0 ? `-${gap}px` : "0px";
+}
 
     // Recompute scale on load + resize
     window.addEventListener("resize", () => {
