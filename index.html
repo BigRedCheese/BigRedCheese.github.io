@@ -510,25 +510,25 @@
 
     // EXACTLY 16 tiles. Exactly 4 tiles per groupId.
     const TILES = [
-      { id:"a1", name:"Benedict Cumberbatch", img:"/images/actors/cumberbatch.avif", groupId:"sherlock_holmes" },
-      { id:"a2", name:"Robert Downey Jr", img:"/images/actors/downey.jpg", groupId:"sherlock_holmes" },
-      { id:"a3", name:"Will Ferrell", img:"/images/actors/ferrell.webp", groupId:"sherlock_holmes" },
-      { id:"a4", name:"Henry Cavill", img:"/images/actors/cavill.webp", groupId:"sherlock_holmes" },
+      { id:"a1", name:"Benedict Cumberbatch", img:"./images/actors/cumberbatch.avif", groupId:"sherlock_holmes" },
+      { id:"a2", name:"Robert Downey Jr", img:"./images/actors/downey.jpg", groupId:"sherlock_holmes" },
+      { id:"a3", name:"Will Ferrell", img:"./images/actors/ferrell.webp", groupId:"sherlock_holmes" },
+      { id:"a4", name:"Henry Cavill", img:"./images/actors/cavill.webp", groupId:"sherlock_holmes" },
 
-      { id:"b1", name:"Roger Moore", img:"/images/actors/moore.webp", groupId:"james_bond" },
-      { id:"b2", name:"Sean Connery", img:"/images/actors/connery.webp", groupId:"james_bond" },
-      { id:"b3", name:"Daniel Craig", img:"/images/actors/craig.webp", groupId:"james_bond" },
-      { id:"b4", name:"Pierce Brosnan", img:"/images/actors/brosnan.jpg", groupId:"james_bond" },
+      { id:"b1", name:"Roger Moore", img:"./images/actors/moore.webp", groupId:"james_bond" },
+      { id:"b2", name:"Sean Connery", img:"./images/actors/connery.webp", groupId:"james_bond" },
+      { id:"b3", name:"Daniel Craig", img:"./images/actors/craig.webp", groupId:"james_bond" },
+      { id:"b4", name:"Pierce Brosnan", img:"./images/actors/brosnan.jpg", groupId:"james_bond" },
 
-      { id:"c1", name:"John Krasinski", img:"/images/actors/krasinski.jpg", groupId:"jack-ryan" },
-      { id:"c2", name:"Alec Baldwin", img:"/images/actors/baldwin.jpg", groupId:"jack-ryan" },
-      { id:"c3", name:"Harrison Ford", img:"/images/actors/ford.webp", groupId:"jack-ryan" },
-      { id:"c4", name:"Chris Pine", img:"/images/actors/pine.jpg", groupId:"jack-ryan" },
+      { id:"c1", name:"John Krasinski", img:"./images/actors/krasinski.jpg", groupId:"jack-ryan" },
+      { id:"c2", name:"Alec Baldwin", img:"./images/actors/baldwin.jpg", groupId:"jack-ryan" },
+      { id:"c3", name:"Harrison Ford", img:"./images/actors/ford.webp", groupId:"jack-ryan" },
+      { id:"c4", name:"Chris Pine", img:"./images/actors/pine.jpg", groupId:"jack-ryan" },
 
-      { id:"d1", name:"Michael Keaton", img:"/images/actors/keaton.jpg", groupId:"batman" },
-      { id:"d2", name:"Ben Affleck", img:"/images/actors/affleck.jpg", groupId:"batman" },
-      { id:"d3", name:"Val Kilmer", img:"/images/actors/kilmer.jpg", groupId:"batman" },
-      { id:"d4", name:"George Clooney", img:"/images/actors/clooney.jpg", groupId:"batman" },
+      { id:"d1", name:"Michael Keaton", img:"./images/actors/keaton.jpg", groupId:"batman" },
+      { id:"d2", name:"Ben Affleck", img:"./images/actors/affleck.jpg", groupId:"batman" },
+      { id:"d3", name:"Val Kilmer", img:"./images/actors/kilmer.jpg", groupId:"batman" },
+      { id:"d4", name:"George Clooney", img:"./images/actors/clooney.jpg", groupId:"batman" },
     ];
 
     /******************************************************************
@@ -584,19 +584,23 @@
     }
 
     function primeAudio(){
-      // Resume once, then play a tiny silent blip to fully unlock on iOS/Safari.
-      ensureAudioRunning().then((ctx) => {
-        try{
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          gain.gain.value = 0.000001; // effectively silent
-          osc.frequency.value = 440;
-          osc.connect(gain).connect(ctx.destination);
-          const t = ctx.currentTime;
-          osc.start(t);
-          osc.stop(t + 0.01);
-        } catch(e) {}
-      });
+      const ctx = getAudioCtx();
+      // Resume synchronously inside the user gesture (Safari/iOS is strict about this).
+      if (ctx.state !== "running") {
+        try { ctx.resume(); } catch(e) {}
+      }
+
+      // tiny silent blip to fully unlock on iOS/Safari
+      try{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.000001; // effectively silent
+        osc.frequency.value = 440;
+        osc.connect(gain).connect(ctx.destination);
+        const t = ctx.currentTime;
+        osc.start(t);
+        osc.stop(t + 0.01);
+      } catch(e) {}
     }
 
     // Prime audio on first user interaction
@@ -824,7 +828,7 @@
       if (lockInput) return;
       if (selected.size !== 4) return;
 
-      getAudioCtx();
+      primeAudio();
 
       const chosen = [...selected].map(id => tiles.find(t => t.id === id)).filter(Boolean);
       if (chosen.length !== 4) return;
