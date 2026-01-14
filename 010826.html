@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Film Connections 80's Favorites</title>
+  <title>Film Connections - 80's Favorites</title>
   <style>
     :root{
       --bg:#f4f5f7;
@@ -75,42 +75,6 @@
     button:hover{ background:#fafafa; }
     button:active{ transform: translateY(1px); }
     button:disabled{ opacity:.5; cursor:not-allowed; }
-
-    /* Archive panel */
-    .archive{
-      margin: 0 0 14px;
-      background: var(--panel);
-      border: 1px solid rgba(0,0,0,.06);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 14px 16px;
-    }
-    .archiveHead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 10px;
-    }
-    .archive h2{
-      margin:0;
-      font-size: 16px;
-      letter-spacing: .2px;
-    }
-    .archive ul{
-      list-style:none;
-      padding:0;
-      margin:0;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .archive a{
-      text-decoration:none;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .archive a:hover{ text-decoration: underline; }
 
     .board{
       position:relative;
@@ -351,7 +315,7 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Film Connections 80's Favorites</h1>
+        <h1>Film Connections - 80's Favorites</h1>
         <p class="sub">Select 4 actors from the same movie. Solve 4 groups.</p>
       </div>
       <div class="controls">
@@ -362,27 +326,15 @@
       </div>
     </header>
 
-    <!-- Archive list -->
-    <section class="archive">
-      <div class="archiveHead">
-        <h2>Past Puzzles</h2>
-        <button id="toggleArchive" type="button">Show all</button>
-      </div>
-      <ul id="archiveList"></ul>
-    </section>
-
     <div class="board" id="board">
       <div class="statusRow">
         <div class="msg" id="msg"></div>
         <div class="attempts" id="attempts"></div>
       </div>
 
-      <!-- NYT-style solved category bars -->
       <div class="solvedBars" id="solvedBars"></div>
-
       <div class="grid" id="grid"></div>
 
-      <!-- poster popover injected here -->
       <div class="posterPop" id="posterPop" aria-hidden="true">
         <img id="posterPopImg" alt="Movie poster" />
         <div class="posterCaption" id="posterPopCap"></div>
@@ -395,80 +347,9 @@
 
   <script>
     /******************************************************************
-     * ARCHIVE (index.html is always "today")
-     * Add yesterday’s file here after you rename it to MMDDYY.html
-     ******************************************************************/
-    // NEWEST FIRST
-    const PUZZLE_ARCHIVE_FILES = [
-          "010726.html"
-    ];
-
-    let archiveExpanded = false;
-
-    function parseMMDDYYFilename(filename){
-      const m = filename.match(/^(\d{2})(\d{2})(\d{2})\.html$/);
-      if (!m) return null;
-
-      const mm = Number(m[1]);
-      const dd = Number(m[2]);
-      const yy = Number(m[3]);
-
-      // 00–69 => 2000–2069, 70–99 => 1970–1999
-      const fullYear = (yy <= 69) ? 2000 + yy : 1900 + yy;
-      return { mm, dd, yyyy: fullYear };
-    }
-
-    function formatDateLabel(parts){
-      if (!parts) return "Unknown date";
-      const d = new Date(parts.yyyy, parts.mm - 1, parts.dd);
-      return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-    }
-
-    function renderArchive(){
-      const listEl = document.getElementById("archiveList");
-      const toggleBtn = document.getElementById("toggleArchive");
-      if (!listEl || !toggleBtn) return;
-
-      listEl.innerHTML = "";
-
-      const filesToShow = archiveExpanded
-        ? PUZZLE_ARCHIVE_FILES
-        : PUZZLE_ARCHIVE_FILES.slice(0, 5);
-
-      filesToShow.forEach(file => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = `./${file}`; // assumes same folder as index.html
-        a.textContent = formatDateLabel(parseMMDDYYFilename(file));
-        li.appendChild(a);
-        listEl.appendChild(li);
-      });
-
-      if (PUZZLE_ARCHIVE_FILES.length <= 5) {
-        toggleBtn.style.display = "none";
-      } else {
-        toggleBtn.style.display = "";
-        toggleBtn.textContent = archiveExpanded ? "Show less" : "Show all";
-      }
-
-      if (PUZZLE_ARCHIVE_FILES.length === 0) {
-        const li = document.createElement("li");
-        li.style.color = "var(--muted)";
-        li.style.fontWeight = "700";
-        li.textContent = "No past puzzles yet.";
-        listEl.appendChild(li);
-      }
-    }
-
-    document.getElementById("toggleArchive")?.addEventListener("click", () => {
-      archiveExpanded = !archiveExpanded;
-      renderArchive();
-    });
-
-    /******************************************************************
      * EDIT THESE TWO ARRAYS ONLY: GROUPS and TILES
      ******************************************************************/
-    const GROUPS = [
+  const GROUPS = [
       { groupId: "airplane", movieTitle: "Airplane!", difficulty: 1, posterImg: "/airplane.jpg" },
       { groupId: "the_terminator", movieTitle: "The Terminator", difficulty: 2, posterImg: "/terminator_1984_german_original_film_art_5000x.webp" },
       { groupId: "stand_by_me", movieTitle: "Stand By Me", difficulty: 3, posterImg: "/standbyme.webp" },
@@ -528,9 +409,6 @@
     let attemptsLeft = 4;
     let lockInput = false;
 
-    // Tweak reveal speed here:
-    const REVEAL_DELAY_MS = 900; // set higher to reveal slower
-
     // ---- Sound (no external files needed) ----
     let audioCtx = null;
 
@@ -587,6 +465,7 @@
       noise.stop(now + 0.21);
     }
 
+    /* One-away popup */
     function showOneAway(){
       oneAwayPopupEl.classList.add("show");
       clearTimeout(showOneAway._t);
@@ -642,9 +521,6 @@
 
       setMsg("Select <strong>4</strong> actors that share a movie.");
       updateAttempts();
-
-      // archive is purely UI; render it too
-      renderArchive();
     }
 
     function setMsg(html){ msgEl.innerHTML = html; }
@@ -775,29 +651,33 @@
       if (allSame && groupById.has(groupId)) {
         solveGroup(groupId, chosen, true);
       } else {
-        // "One away..." if 3 of 4 share same groupId
+        // WRONG GUESS:
+        // Show "one away..." if 3 of the 4 are from the same group
         const counts = {};
         chosen.forEach(t => { counts[t.groupId] = (counts[t.groupId] || 0) + 1; });
-        if (Object.values(counts).some(c => c === 3)) showOneAway();
+        const isOneAway = Object.values(counts).some(c => c === 3);
+        if (isOneAway) showOneAway();
 
+        // decrement attempts + shake
         attemptsLeft -= 1;
         updateAttempts();
 
         lockInput = true;
         shakeSelectedTiles();
 
-        // auto-deselect on wrong guess (after shake so they see the feedback)
         if (attemptsLeft <= 0) {
+          // auto-deselect after shake, then reveal with correct-style animation sequence
           setTimeout(() => {
             selected.clear();
             renderGrid();
-            revealAnswersAnimated(); // reveal answers (animated like correct)
+            revealAnswersAnimated();
           }, 360);
           return;
         }
 
         setMsg("Not quite. Try another set of 4.");
 
+        // auto-deselect all after shake
         setTimeout(() => {
           selected.clear();
           lockInput = false;
@@ -807,6 +687,7 @@
       }
     }
 
+    // Solve a group (used for both player-correct and reveal-animated)
     function solveGroup(groupId, chosenTiles, playSfx){
       const g = groupById.get(groupId);
       if (!g) return;
@@ -819,6 +700,7 @@
         setTimeout(() => playWhoosh(), 70);
       }
 
+      // selection rect NOW (before removing tiles)
       const selectionRect = getRectForTileIds(chosenTiles.map(t => t.id));
 
       solvedGroups.add(groupId);
@@ -829,12 +711,17 @@
         memberNames: chosenTiles.map(t => t.name)
       });
 
+      // remove those tiles from play
       const selectedIds = new Set(chosenTiles.map(t => t.id));
       tiles = tiles.filter(t => !selectedIds.has(t.id));
+
+      // clear selection
       selected.clear();
 
+      // animate reflow
       animateReorder(() => renderAll());
 
+      // poster pop near where solved
       if (selectionRect) showPosterAtRect(g, selectionRect);
 
       setMsg(`Correct: <strong>${g.movieTitle}</strong>`);
@@ -850,6 +737,7 @@
       }, 520);
     }
 
+    // Reveal answers with the SAME behavior as correct guesses
     function revealAnswersAnimated(){
       lockInput = true;
       btnSubmit.disabled = true;
@@ -857,12 +745,13 @@
       btnDeselect.disabled = true;
 
       hidePosterPop(false);
-      setMsg("Game over — revealing answers…");
 
       const remainingGroups = GROUPS
         .filter(g => !solvedGroups.has(g.groupId))
         .slice()
         .sort((a,b) => a.difficulty - b.difficulty);
+
+      setMsg("Game over — revealing answers…");
 
       let i = 0;
 
@@ -876,6 +765,7 @@
 
         const g = remainingGroups[i++];
         const chosenTiles = TILES.filter(t => t.groupId === g.groupId);
+
         const stillPresentIds = new Set(tiles.map(t => t.id));
         const presentTiles = chosenTiles.filter(t => stillPresentIds.has(t.id));
 
@@ -901,18 +791,20 @@
 
           if (rect) showPosterAtRect(g, rect);
         } else {
-          // safe fallback (shouldn't happen)
+          // fallback
           if (!solvedGroups.has(g.groupId)) solvedGroups.add(g.groupId);
+          const names = TILES.filter(t => t.groupId === g.groupId).map(t => t.name);
           solvedRows.push({
             groupId: g.groupId,
             difficulty: g.difficulty,
             movieTitle: g.movieTitle,
-            memberNames: chosenTiles.map(t => t.name)
+            memberNames: names
           });
           renderAll();
         }
 
-        setTimeout(step, REVEAL_DELAY_MS);
+        // change this number to slow/speed reveal
+        setTimeout(step, 620);
       }
 
       step();
