@@ -371,14 +371,79 @@
       .posterPop{ width: 140px; }
       .solvedActors{ max-width: 260px; }
     }
-  </style>
+  
+/* --- Title image button + daily category layout --- */
+.title-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap: nowrap;
+}
+
+.title-image-link{
+  text-decoration:none;
+  line-height:0;
+}
+
+.title-image{
+  height: 110px;     /* uses PNG’s natural aspect ratio */
+  width: auto;
+  display: block;
+  background: transparent;
+}
+
+.title-image-link:hover .title-image{
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.title-image-link:active .title-image{
+  transform: translateY(1px);
+  filter: brightness(0.98);
+}
+
+.title-theme{
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #111827;
+}
+
+
+
+
+/* --- Title button overrides (transparent PNG + category to the right) --- */
+.title-image-link{ line-height:0; }
+.title-button{
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: inline-block;
+}
+.title-row{
+  flex-wrap: nowrap;
+}
+.title-theme{
+  white-space: nowrap;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+}
+
+</style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
       <div>
-        <a href="index.html" class="title-button">Film Connections - Characters</a>
+        <div class="title-row">
+          <a href="index.html" class="title-button title-image-link" aria-label="Go to today’s puzzle">
+            <img src="/Users/glennosburn/Downloads/film-connections-button.png" alt="Film Connections" class="title-image">
+          </a>
+          <span class="title-theme">Characters</span>
+        </div>
         <p class="sub">Select 4 actors who all played the same character. Solve 4 groups.</p>
       </div>
       <div class="controls">
