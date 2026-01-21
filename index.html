@@ -431,7 +431,50 @@
   letter-spacing: 0.6px;
 }
 
-</style>
+
+    /* ===== Stone 3D flip + poster merge (correct guess) ===== */
+    .tile{
+      perspective: 1200px;
+    }
+    .tile-inner{
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 1.2s cubic-bezier(.2,.9,.2,1);
+    }
+    .tile.stone .tile-inner{
+      transition-duration: 3s; /* slow dramatic flip */
+    }
+    .tile.flipped .tile-inner{
+      transform: rotateY(180deg);
+    }
+    .tile-face{
+      position:absolute;
+      inset:0;
+      backface-visibility: hidden;
+      border-radius: 14px;
+      overflow:hidden;
+    }
+    .tile-front{
+      background: var(--tile);
+    }
+    .tile-back{
+      transform: rotateY(180deg);
+      background-size: 200% 200%;
+      background-repeat: no-repeat;
+      box-shadow:
+        inset 0 0 40px rgba(0,0,0,.35),
+        inset 0 0 0 6px rgba(255,255,255,.08);
+      filter: contrast(1.05) saturate(0.95);
+    }
+    .tile.stone{
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.35),
+        inset 0 0 0 4px rgba(0,0,0,.15);
+    }
+
+  </style>
 </head>
 
 <body>
@@ -833,6 +876,13 @@
 
         if (selected.has(t.id)) tile.classList.add("selected");
 
+        
+        const inner = document.createElement("div");
+        inner.className = "tile-inner";
+
+        const front = document.createElement("div");
+        front.className = "tile-face tile-front";
+
         const img = document.createElement("img");
         img.src = t.img;
         img.alt = t.name;
@@ -841,10 +891,16 @@
         name.className = "nameOverlay";
         name.textContent = t.name;
 
-        tile.appendChild(img);
-        tile.appendChild(name);
+        front.appendChild(img);
+        front.appendChild(name);
 
-        tile.addEventListener("click", () => onTileClick(t.id));
+        const back = document.createElement("div");
+        back.className = "tile-face tile-back";
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        tile.appendChild(inner);
+tile.addEventListener("click", () => onTileClick(t.id));
 
         tile.addEventListener("touchstart", () => {
           tile.classList.add("showName");
@@ -940,6 +996,85 @@
       }
     }
 
+
+    function assignPosterQuadrants(tileEls, posterUrl){
+      const positions = [
+        "0% 0%",     // top-left
+        "100% 0%",   // top-right
+        "0% 100%",   // bottom-left
+        "100% 100%"  // bottom-right
+      ];
+
+      tileEls.forEach((tile, i) => {
+        const back = tile.querySelector(".tile-back");
+        if (!back) return;
+        back.style.backgroundImage = `url(${posterUrl})`;
+        back.style.backgroundPosition = positions[i] || "0% 0%";
+      });
+    }
+
+    function mergeTilesIntoPoster(tileEls, posterUrl){
+      // Freeze tiles as fixed-position elements at their current positions
+      const rects = tileEls.map(t => t.getBoundingClientRect());
+      if (!rects.length) return;
+
+      const minX = Math.min(...rects.map(r => r.left));
+      const minY = Math.min(...rects.map(r => r.top));
+      const tileW = rects[0].width;
+      const tileH = rects[0].height;
+
+      tileEls.forEach((tile, idx) => {
+        const r = rects[idx];
+        tile.style.position = "fixed";
+        tile.style.left = r.left + "px";
+        tile.style.top = r.top + "px";
+        tile.style.width = r.width + "px";
+        tile.style.height = r.height + "px";
+        tile.style.margin = "0";
+        tile.style.zIndex = 999;
+      });
+
+      // Animate them into a 2x2 block
+      requestAnimationFrame(() => {
+        tileEls.forEach((tile, idx) => {
+          tile.style.transition = "left 0.9s cubic-bezier(.2,.9,.2,1), top 0.9s cubic-bezier(.2,.9,.2,1)";
+          const col = idx % 2;
+          const row = Math.floor(idx / 2);
+          tile.style.left = (minX + col * tileW) + "px";
+          tile.style.top = (minY + row * tileH) + "px";
+        });
+      });
+
+      // Replace with the full poster
+      setTimeout(() => {
+        const poster = document.createElement("img");
+        poster.src = posterUrl;
+        poster.alt = "Solved poster";
+        poster.style.position = "fixed";
+        poster.style.left = minX + "px";
+        poster.style.top = minY + "px";
+        poster.style.width = (tileW * 2) + "px";
+        poster.style.height = (tileH * 2) + "px";
+        poster.style.borderRadius = "16px";
+        poster.style.boxShadow = "0 30px 80px rgba(0,0,0,.5)";
+        poster.style.zIndex = 1000;
+        poster.style.opacity = "0";
+        poster.style.transition = "opacity 0.25s ease";
+
+        document.body.appendChild(poster);
+        requestAnimationFrame(() => poster.style.opacity = "1");
+
+        
+        // Auto-dismiss the constructed poster after 3 seconds so it doesn't cover playable tiles
+        setTimeout(() => {
+          poster.style.opacity = "0";
+          setTimeout(() => poster.remove(), 300);
+        }, 3000);
+tileEls.forEach(t => t.remove());
+      }, 1000);
+    }
+
+
     function solveGroup(groupId, chosenTiles, playSfx){
       const g = groupById.get(groupId);
       if (!g) return;
@@ -962,25 +1097,46 @@
         memberNames: chosenTiles.map(t => t.name)
       });
 
-      const selectedIds = new Set(chosenTiles.map(t => t.id));
-      tiles = tiles.filter(t => !selectedIds.has(t.id));
+            const selectedIds = new Set(chosenTiles.map(t => String(t.id)));
+
+      // Stone 3D flip + poster merge (on correct guess)
+      const tileEls = [...gridEl.querySelectorAll(".tile")]
+        .filter(el => selectedIds.has(String(el.dataset.id)));
+
+      assignPosterQuadrants(tileEls, g.posterImg);
+      
+      const flipSound = document.getElementById("tileFlipSound");
+      tileEls.forEach((el, i) => {
+        el.classList.add("stone");
+        setTimeout(() => {
+          if (flipSound) {
+            flipSound.currentTime = 0;
+            flipSound.play().catch(() => {});
+          }
+          el.classList.add("flipped");
+        }, i * 300);
+      });
+
+      setTimeout(() => mergeTilesIntoPoster(tileEls, g.posterImg), 3600);
       selected.clear();
 
-      animateReorder(() => renderAll());
+      setTimeout(() => {
+        tiles = tiles.filter(t => !selectedIds.has(String(t.id)));
+      }, 4600);
 
-      if (selectionRect) showPosterAtRect(g, selectionRect);
-
+      setTimeout(() => {
+        animateReorder(() => renderAll());
+      }, 4700);
       setMsg(`Correct: <strong>${g.movieTitle}</strong>`);
 
       setTimeout(() => {
         lockInput = false;
         renderGrid();
-
         if (solvedGroups.size === 4) {
           setMsg("🎉 You solved them all!");
           btnSubmit.disabled = true;
         }
-      }, 520);
+      }, 4950);
     }
 
     function revealAnswersAnimated(){
@@ -1192,5 +1348,11 @@
     init();
     setTimeout(applyBoardScale, 0);
   </script>
+
+  <!-- Stone tile flip sound -->
+  <audio id="tileFlipSound" preload="auto">
+    <source src="tile-flip.mp3" type="audio/mpeg">
+  </audio>
+
 </body>
 </html>
