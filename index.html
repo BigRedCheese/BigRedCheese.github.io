@@ -288,15 +288,46 @@
       transition: transform .15s ease;
     }
 
-
     .tile.selected{
-      border-color: transparent;
+      border-color: #111827;
       box-shadow:
-        0 0 0 4px #ffffff,
-        0 0 0 7px rgba(17,24,39,1),
-        0 0 14px rgba(17,24,39,.45);
-      z-index: 2;
+        0 0 0 4px rgba(255,255,255,0.95),
+        0 0 0 8px rgba(37,99,235,0.95),
+        0 18px 40px rgba(0,0,0,.22);
+      transform: translateY(-2px) scale(1.02);
+      z-index: 3;
+      animation: selectedPop .18s ease-out;
     }
+    .tile.selected::after{
+      content: "✓";
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(37,99,235,0.98);
+      color: #fff;
+      font-weight: 1000;
+      font-size: 18px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      border: 2px solid rgba(255,255,255,.9);
+      pointer-events: none;
+    }
+    /* Make the name strip show while selected (even without hover) */
+    .tile.selected .nameOverlay{
+      opacity: 1;
+      transform: translateY(0);
+    }
+    /* Subtle "selected" pulse once */
+    @keyframes selectedPop {
+      0%   { transform: translateY(0) scale(1); }
+      60%  { transform: translateY(-3px) scale(1.04); }
+      100% { transform: translateY(-2px) scale(1.02); }
+    }
+
 
     /* Shake (wrong guess) */
     @keyframes shake {
@@ -472,6 +503,21 @@
       box-shadow:
         0 18px 40px rgba(0,0,0,.35),
         inset 0 0 0 4px rgba(0,0,0,.15);
+    }
+
+  
+
+    /* ===== Wrong-guess screen shake ===== */
+    @keyframes screenShake {
+      0%   { transform: translate3d(0,0,0); }
+      20%  { transform: translate3d(-6px, 2px, 0); }
+      40%  { transform: translate3d(6px, -2px, 0); }
+      60%  { transform: translate3d(-4px, -1px, 0); }
+      80%  { transform: translate3d(4px, 1px, 0); }
+      100% { transform: translate3d(0,0,0); }
+    }
+    body.shake{
+      animation: screenShake 180ms ease-in-out;
     }
 
   </style>
@@ -865,6 +911,15 @@
       });
     }
 
+    function triggerScreenShake(){
+      document.body.classList.remove("shake");
+      // Force reflow so the animation can retrigger rapidly
+      void document.body.offsetWidth;
+      document.body.classList.add("shake");
+      setTimeout(() => document.body.classList.remove("shake"), 220);
+    }
+
+
     function renderGrid(){
       gridEl.innerHTML = "";
 
@@ -976,6 +1031,7 @@ tile.addEventListener("click", () => onTileClick(t.id));
         lockInput = true;
         shakeSelectedTiles();
 
+        triggerScreenShake();
         if (attemptsLeft <= 0) {
           setTimeout(() => {
             selected.clear();
