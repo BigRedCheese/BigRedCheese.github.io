@@ -1065,13 +1065,7 @@ tile.addEventListener("click", () => onTileClick(t.id));
         requestAnimationFrame(() => poster.style.opacity = "1");
 
         
-        
-        const thud = document.getElementById("posterThudSound");
-        if (thud) {
-          thud.currentTime = 0;
-          thud.play().catch(() => {});
-        }
-// Auto-dismiss the constructed poster after 3 seconds so it doesn't cover playable tiles
+        // Auto-dismiss the constructed poster after 3 seconds so it doesn't cover playable tiles
         setTimeout(() => {
           poster.style.opacity = "0";
           setTimeout(() => poster.remove(), 300);
@@ -1358,12 +1352,6 @@ tileEls.forEach(t => t.remove());
   <!-- Stone tile flip sound -->
   <audio id="tileFlipSound" preload="auto">
     <source src="tile-flip.mp3" type="audio/mpeg">
-  </audio>
-
-
-  <!-- Poster lock thud sound -->
-  <audio id="posterThudSound" preload="auto">
-    <source src="poster-thud.mp3" type="audio/mpeg">
   </audio>
 
 </body>
