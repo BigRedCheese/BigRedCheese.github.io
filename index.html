@@ -816,7 +816,7 @@
         try { ctx.resume(); } catch(e) {}
       }
 
-      // tiny silent blip to fully unlock on iOS/Safari
+      // tiny silent blip to fully unlock on iOS/Safari (WebAudio)
       try{
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -826,6 +826,31 @@
         const t = ctx.currentTime;
         osc.start(t);
         osc.stop(t + 0.01);
+      } catch(e) {}
+
+      // Also unlock <audio> elements (Safari can be picky). Do this ONLY during a user gesture.
+      try{
+        document.querySelectorAll("audio").forEach(a => {
+          if (!a || a.dataset._unlocked === "1") return;
+          const prevVol = a.volume;
+          a.volume = 0;
+          const p = a.play();
+          // Some browsers return undefined instead of a Promise.
+          if (p && typeof p.then === "function") {
+            p.then(() => {
+              try{ a.pause(); a.currentTime = 0; }catch(e){}
+              a.volume = prevVol;
+              a.dataset._unlocked = "1";
+            }).catch(() => {
+              a.volume = prevVol;
+              a.dataset._unlocked = "1";
+            });
+          } else {
+            try{ a.pause(); a.currentTime = 0; }catch(e){}
+            a.volume = prevVol;
+            a.dataset._unlocked = "1";
+          }
+        });
       } catch(e) {}
     }
 
@@ -888,25 +913,52 @@
       const base = document.getElementById("tileFlipSound");
       if (!base) return;
 
+      // Prime HTMLAudio as well (needed on some Safari builds)
+      primeAudio();
+
+      // Determine the actual playable src (prefer currentSrc once loaded)
+      const src = base.currentSrc || base.querySelector("source")?.src || base.src;
+      if (!src) return;
+
       if (!playTileFlipSfx._pool){
-        // Create a small pool of clones so rapid/overlapping plays don't interrupt each other.
-        playTileFlipSfx._pool = Array.from({length: 6}, () => {
-          const a = base.cloneNode(true);
-          // Ensure the clone can play even if the base is currently playing.
-          a.removeAttribute("id");
+        playTileFlipSfx._pool = [];
+        playTileFlipSfx._poolHost = document.createElement("div");
+        playTileFlipSfx._poolHost.style.position = "absolute";
+        playTileFlipSfx._poolHost.style.width = "0";
+        playTileFlipSfx._poolHost.style.height = "0";
+        playTileFlipSfx._poolHost.style.overflow = "hidden";
+        playTileFlipSfx._poolHost.setAttribute("aria-hidden","true");
+        document.body.appendChild(playTileFlipSfx._poolHost);
+
+        // Start with a small pool; we can grow if everything is busy.
+        for (let k = 0; k < 8; k++){
+          const a = new Audio(src);
           a.preload = "auto";
-          return a;
-        });
-        playTileFlipSfx._i = 0;
+          a.crossOrigin = "anonymous";
+          a.playsInline = true;
+          playTileFlipSfx._poolHost.appendChild(a);
+          playTileFlipSfx._pool.push(a);
+        }
       }
 
       const pool = playTileFlipSfx._pool;
-      const i = playTileFlipSfx._i++ % pool.length;
-      const a = pool[i];
+
+      // Prefer an element that's not currently playing so we never "steal" audio mid-sound.
+      let a = pool.find(x => x && (x.paused || x.ended));
+      if (!a){
+        // All busy: create a new one (rare, but makes playback deterministic).
+        a = new Audio(src);
+        a.preload = "auto";
+        a.crossOrigin = "anonymous";
+        a.playsInline = true;
+        playTileFlipSfx._poolHost.appendChild(a);
+        pool.push(a);
+      }
 
       try{
         a.currentTime = 0;
-        a.play().catch(() => {});
+        const p = a.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
       }catch(e){}
     }
 
