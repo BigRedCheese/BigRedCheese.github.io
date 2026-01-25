@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Film Connections - 1998</title>
   <style>
     :root{
@@ -421,36 +421,14 @@
     }
 
     @media (max-width: 520px){
-      /* Keep header compact so the board doesn't auto-scale down too much */
-      .title-image{ height: 34px; width: auto; }
-      .sub{
-        font-size: clamp(14px, 3.6vw, 16px);
-        line-height: 1.15;
-        margin: 0 0 6px 0;
-      }
+  .sub{font-weight:700; letter-spacing:0.15px;}
 
-      .wrap{ padding: 8px; }
-      .board{ width: min(98vw, 640px); }
-
-      /* Larger tiles on phones */
-      .grid{ gap: 10px; grid-template-columns: repeat(4, minmax(74px, 1fr)); }
-      .nameOverlay{ font-size: 12px; padding: 6px 8px; }
-
-      /* Controls: still 2x2, but not huge */
-      .controls-under-sub{
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .controls-under-sub button{
-        width: 100%;
-        font-size: 14px;
-        padding: 10px 12px;
-        border-radius: 14px;
-      }
-
-      /* Slightly lighter shadows for smoother animation on phones */
-      .tile, .solvedBar, .solved-toast-inner{ box-shadow: 0 10px 25px rgba(0,0,0,.18); }
+      header{ flex-direction:column; align-items:flex-start; }
+      .controls{ justify-content:flex-start; }
+      .controls-under-sub{ gap: 8px; }
+      .controls-under-sub button{ flex: 1 1 auto; }
+      .posterPop{ width: 140px; }
+      .solvedActors{ max-width: 260px; }
     }
   
 /* --- Title image button + daily category layout --- */
@@ -609,42 +587,6 @@
   margin-top: 4px;
 }
 
-
-    /* ---- MOBILE OPTIMIZATIONS ---- */
-    :root{
-      --safeTop: env(safe-area-inset-top, 0px);
-      --safeBottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    body{
-      padding-top: var(--safeTop);
-      padding-bottom: var(--safeBottom);
-    }
-
-    button, .tile{ touch-action: manipulation; }
-    button, .tile{ -webkit-tap-highlight-color: transparent; }
-    .tile{ user-select:none; -webkit-user-select:none; }
-
-    @media (max-width: 520px){
-      .wrap{ padding: 10px; }
-      .board{ width: min(96vw, 520px); }
-      .grid{ gap: 8px; grid-template-columns: repeat(4, minmax(64px, 1fr)); }
-      .nameOverlay{ font-size: 12px; padding: 6px 8px; }
-
-      /* Make controls thumb-friendly: 2x2 grid */
-      .controls-under-sub{
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .controls-under-sub button{ width: 100%; }
-
-      /* Slightly lighter shadows for smoother animation on phones */
-      .tile, .solvedBar, .solved-toast-inner{ box-shadow: 0 10px 25px rgba(0,0,0,.18); }
-    }
-
-
-    html, body{ overscroll-behavior: none; }
 </style>
 </head>
 
@@ -800,7 +742,7 @@
       { id:"a3", name:"Julianne Moore", img:"/images/actors/moore.jpg", groupId:"biglebowski" },
       { id:"a4", name:"Philip Seymore Hoffman", img:"/images/actors/hoffman.jpg", groupId:"biglebowski" },
 
-      { id:"b1", name:"Bruce Willis", img:"/images/actors/willis.jpeg", groupId:"armageddon" },
+      { id:"b1", name:"Bruce Willis", img:"/images/actors/willis.jpg", groupId:"armageddon" },
       { id:"b2", name:"Ben Affleck", img:"/images/actors/affleck.jpg", groupId:"armageddon" },
       { id:"b3", name:"Owen Wilson", img:"/images/actors/wilson.jpg", groupId:"armageddon" },
       { id:"b4", name:"Liv Tyler", img:"/images/actors/tyler.jpg", groupId:"armageddon" },
@@ -813,7 +755,7 @@
       { id:"d1", name:"Tom Hanks", img:"/images/actors/hanks.avif", groupId:"privateryan" },
       { id:"d2", name:"Matt Damon", img:"/images/actors/damon.jpg", groupId:"privateryan" },
       { id:"d3", name:"Ted Danson", img:"/images/actors/danson.jpeg", groupId:"privateryan" },
-      { id:"d4", name:"Vin Diesel", img:"/images/actors/diesel.webp", groupId:"privateryan" },
+      { id:"d4", name:"Vin Diesel", img:"/images/actors/vin.webp", groupId:"privateryan" },
     ];
     /******************************************************************
      * GAME ENGINE
@@ -1155,10 +1097,7 @@
         img.src = t.img;
         img.alt = t.name;
 
-        
-        img.loading = "lazy";
-        img.decoding = "async";
-const name = document.createElement("div");
+        const name = document.createElement("div");
         name.className = "nameOverlay";
         name.textContent = t.name;
 
@@ -1600,8 +1539,9 @@ el.classList.add("flipped");
         s = Math.min(1, availableForBoard / boardH);
       }
       // Don't crush it too small
-      s = Math.max((window.innerWidth <= 520 ? 0.86 : 0.75), s);
-boardScale.style.setProperty("--boardScale", s.toFixed(3));
+      s = Math.max(0.75, s);
+
+      boardScale.style.setProperty("--boardScale", s.toFixed(3));
 
       // Because CSS transform does not change document flow height, pull up the content below
       // so the archive box stays close to the scaled board.
