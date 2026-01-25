@@ -455,6 +455,10 @@
 
   .posterPop{ width: 140px; }
   .solvedActors{ max-width: 260px; }
+  /* Board: use the full screen width and center the scaled board (prevents empty space on the right) */
+  .board-scale{ transform-origin: top center; width: 100%; }
+  .board{ width: 100%; padding: 10px; }
+  .grid{ gap: 5px; }
 }
 
 /* --- Title image button + daily category layout --- */ + daily category layout --- */
@@ -1603,22 +1607,32 @@ el.classList.add("flipped");
 
       // Reset to measure natural sizes (no scaling)
       boardScale.style.setProperty("--boardScale", 1);
+      boardScale.style.marginBottom = "0px";
 
       // Measure after reset
-      const boardH = boardScale.getBoundingClientRect().height;
-      const totalH = wrap.getBoundingClientRect().height;
-      const otherH = totalH - boardH;
+      const rect = boardScale.getBoundingClientRect();
+      const boardH = rect.height;
+      const boardW = rect.width;
 
-      // Available vertical space for the board portion
-      const availableForBoard = window.innerHeight - otherH - 8;
+      // How much space is actually available for the board *from where it sits on screen*
+      // (This avoids counting the archive content below the board, which would otherwise
+      // incorrectly force the board to shrink on mobile.)
+      const boardTop = rect.top;
+      const availableH = window.innerHeight - boardTop - 12;
+
+      // Available width inside the page wrap
+      const wrapW = wrap.getBoundingClientRect().width;
+      const availableW = wrapW;
 
       let s = 1;
-      if (availableForBoard > 0 && boardH > 0) {
-        s = Math.min(1, availableForBoard / boardH);
-      }
-      // Don't crush it too small
-      // Don't crush it too small (give mobile a larger minimum so the grid stays readable)
-      const minScale = (window.innerWidth <= 520) ? 0.85 : 0.75;
+
+      const candidates = [];
+      if (availableH > 0 && boardH > 0) candidates.push(availableH / boardH);
+      if (availableW > 0 && boardW > 0) candidates.push(availableW / boardW);
+      if (candidates.length) s = Math.min(1, ...candidates);
+
+      // Don’t crush it too small (mobile gets a higher floor so tiles stay readable)
+      const minScale = (window.innerWidth <= 520) ? 0.92 : 0.75;
       s = Math.max(minScale, s);
 
       boardScale.style.setProperty("--boardScale", s.toFixed(3));
