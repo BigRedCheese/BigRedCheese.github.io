@@ -653,6 +653,25 @@
   }
 }
 
+
+/* MOBILE: instructions (msg) above mistakes row */
+@media (max-width: 520px) {
+  .statusRow{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .statusRow .msg{
+    width: 100%;
+    text-align: center;
+    margin: 0 0 2px 0;
+  }
+  .statusRow .statusActions{
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 </style>
 </head>
 
