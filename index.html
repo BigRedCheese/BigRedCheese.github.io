@@ -882,6 +882,34 @@
       });
     }
 
+
+    // ---- TILE FLIP SFX (pool to avoid cutting off overlapping plays) ----
+    function playTileFlipSfx(){
+      const base = document.getElementById("tileFlipSound");
+      if (!base) return;
+
+      if (!playTileFlipSfx._pool){
+        // Create a small pool of clones so rapid/overlapping plays don't interrupt each other.
+        playTileFlipSfx._pool = Array.from({length: 6}, () => {
+          const a = base.cloneNode(true);
+          // Ensure the clone can play even if the base is currently playing.
+          a.removeAttribute("id");
+          a.preload = "auto";
+          return a;
+        });
+        playTileFlipSfx._i = 0;
+      }
+
+      const pool = playTileFlipSfx._pool;
+      const i = playTileFlipSfx._i++ % pool.length;
+      const a = pool[i];
+
+      try{
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      }catch(e){}
+    }
+
     function showOneAway(){
       oneAwayPopupEl.classList.add("show");
       clearTimeout(showOneAway._t);
@@ -1292,11 +1320,8 @@ tileEls.forEach(t => t.remove());
       tileEls.forEach((el, i) => {
         el.classList.add("stone");
         setTimeout(() => {
-          if (flipSound) {
-            flipSound.currentTime = 0;
-            flipSound.play().catch(() => {});
-          }
-          el.classList.add("flipped");
+                    playTileFlipSfx();
+el.classList.add("flipped");
         }, i * 300);
       });
 
