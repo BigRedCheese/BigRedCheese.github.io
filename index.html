@@ -436,8 +436,8 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
-      "submit deselect"
-      "shuffle reset";
+      "deselect shuffle"
+      "reset reset";
     gap: 10px;
     width: 100%;
   }
@@ -448,7 +448,8 @@
     border-radius: 14px;
   }
 
-  #btnSubmit{ grid-area: submit; }
+  /* Submit moves into the puzzle frame on mobile */
+  .controls-under-sub #btnSubmit{ display: none; }
   #btnDeselect{ grid-area: deselect; }
   #btnShuffle{ grid-area: shuffle; }
   #btnReset{ grid-area: reset; }
@@ -459,6 +460,25 @@
   .board-scale{ transform-origin: top center; width: 100%; }
   .board{ width: 100%; padding: 10px; }
   .grid{ gap: 5px; }
+
+  /* Status row: keep "Mistakes left" + Submit together */
+  .statusRow{ flex-wrap: nowrap; align-items: center; }
+  .msg{ flex: 1; min-width: 0; }
+  .statusActions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex: 0 0 auto;
+  }
+  /* Compact submit when inside the frame */
+  #btnSubmit.inFrame{
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1;
+    box-shadow: 0 2px 0 rgba(0,0,0,.06);
+  }
+
 }
 
 /* --- Title image button + daily category layout --- */ + daily category layout --- */
@@ -645,7 +665,9 @@
       <div class="board" id="board">
         <div class="statusRow">
           <div class="msg" id="msg"></div>
-          <div class="attempts" id="attempts"></div>
+          <div class="statusActions" id="statusActions">
+            <div class="attempts" id="attempts"></div>
+          </div>
         </div>
 
       <!-- NYT-style solved category bars -->
@@ -799,6 +821,32 @@
     const btnDeselect = document.getElementById("btnDeselect");
     const btnSubmit = document.getElementById("btnSubmit");
     const btnReset = document.getElementById("btnReset");
+
+    // Mobile-only: move Submit into the puzzle frame next to "Mistakes left"
+    const mobileMq = window.matchMedia("(max-width: 520px)");
+    function placeSubmitButton(){
+      const actions = document.getElementById("statusActions");
+      if (!actions) return;
+      if (mobileMq.matches){
+        if (btnSubmit && btnSubmit.parentElement !== actions){
+          actions.appendChild(btnSubmit);
+          btnSubmit.classList.add("inFrame");
+          btnSubmit.style.display = ""; // ensure visible after moving
+        }
+      }else{
+        // If the user rotates back to desktop width, put Submit back with the other controls
+        const controls = document.querySelector(".controls-under-sub");
+        if (controls && btnSubmit && btnSubmit.parentElement !== controls){
+          controls.appendChild(btnSubmit);
+          btnSubmit.classList.remove("inFrame");
+          btnSubmit.style.display = "";
+        }
+      }
+    }
+    placeSubmitButton();
+    if (mobileMq.addEventListener) mobileMq.addEventListener("change", placeSubmitButton);
+    else if (mobileMq.addListener) mobileMq.addListener(placeSubmitButton);
+
 
     const boardEl = document.getElementById("board");
     const posterPop = document.getElementById("posterPop");
